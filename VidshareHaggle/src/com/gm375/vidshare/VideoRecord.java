@@ -161,7 +161,7 @@ public class VideoRecord extends Activity implements View.OnClickListener, Surfa
             } else if (mStatus == STATUS_RECORDING_VIDEO) {
                 //stopRecordingVideo();
             } else {
-                // nothing
+                // nothing here
             }
             break;
         }
