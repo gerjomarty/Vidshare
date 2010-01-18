@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/video_record"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:orientation="horizontal">
+
+    <com.gm375.Vidshare.VideoPreview
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/video_record_surface"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        />
+    <ImageView
+        android:id="@+id/shutter_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_camera_indicator_photo"
+        android:background="@drawable/ic_btn_camera_background"
+        android:clickable="true"
+        android:focusable="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginRight="5dip"
+        android:layout_marginTop="5dip"
+        android:scaleType="center"
+        />
+
+</RelativeLayout>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Vidshare</string>
+    <string name="tab1">Watch</string>
+    <string name="tab2">Broadcast</string>
+    <string name="tab3">Settings</string>
+</resources>
