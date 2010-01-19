@@ -1,8 +1,12 @@
 package com.gm375.vidshare;
 
+import java.util.ArrayList;
+
+import org.haggle.Attribute;
 import org.haggle.DataObject;
 import org.haggle.Interface;
 import org.haggle.Node;
+import org.haggle.DataObject.DataObjectException;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -271,6 +275,54 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
             }
         } else if (requestCode == Vidshare.ADD_VIDEO_ATTRIBUTES_REQUEST) {
             Log.d(Vidshare.LOG_TAG, "***Got response from add attributes activity.***");
+            
+            if (resultCode == Activity.RESULT_OK) {
+                String recordedVideoFilepath = data.getStringExtra("filepath");
+                Log.d(Vidshare.LOG_TAG, "***File is: "+ recordedVideoFilepath +" ***");
+                
+                if (recordedVideoFilepath != null) {
+                    String[] attrs = (String[]) data.getStringArrayExtra("attributes");
+                    
+                    if (attrs == null) {
+                        return;                        
+                    }
+                    
+                    try {
+                        DataObject dObj = new DataObject(recordedVideoFilepath);
+                        
+                        for (int i = 0; i < attrs.length; i++) {
+                            Log.d(Vidshare.LOG_TAG, "*** Video has attribute: "+ attrs[i] +" ***");
+                            dObj.addAttribute("Video", attrs[i], 1);
+                        }
+                        
+                        dObj.addHash();
+                        
+                        vs.getHaggleHandle().publishDataObject(dObj);
+                        
+                        // TODO: Need to create InterestView class before implementing this.
+                        /*
+                        ArrayList<Attribute> aa = new ArrayList<Attribute>();
+                        
+                        for (int i = 0; i < attrs.length; i++) {
+                            
+                            // Also add to our interest list in the interest view
+                            synchronized(InterestView.interests) {
+                                if (InterestView.interests.contains(attrs[i]) == false) {
+                                    InterestView.interests.add(attrs[i]);
+                                    aa.add(new Attribute("Picture", attrs[i], 1));
+                                }
+                            }
+                        }
+                        ps.getHaggleHandle().registerInterests(aa.toArray(new Attribute[aa.size()]));
+                        */
+                        
+                    } catch (DataObjectException e) {
+                        Log.d(Vidshare.LOG_TAG, "*** Could not create data object for "+ recordedVideoFilepath +" ***");
+                    }
+                }
+            }
+        } else if (requestCode == 1) {
+            // TODO: More stuff here.
         }
     }
     
