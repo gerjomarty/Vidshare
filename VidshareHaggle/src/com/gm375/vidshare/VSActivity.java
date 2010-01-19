@@ -264,12 +264,13 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
                 
                 Log.d(Vidshare.LOG_TAG, "***Activity result file path is "+ videoFilePath +" ***");
                 
+                data.setClass(getApplicationContext(), AddVideoAttributeView.class);
+                this.startActivityForResult(data, Vidshare.ADD_VIDEO_ATTRIBUTES_REQUEST);
                 
-                // TODO: Continue here with some stuff about attributes. 
-                // In a later revision, move attribute adding to before recording/streaming.
+                // TODO: In a later revision, move attribute adding to before recording/streaming.
             }
         } else if (requestCode == Vidshare.ADD_VIDEO_ATTRIBUTES_REQUEST) {
-            
+            Log.d(Vidshare.LOG_TAG, "***Got response from add attributes activity.***");
         }
     }
     

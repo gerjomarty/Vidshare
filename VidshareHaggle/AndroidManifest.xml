@@ -17,6 +17,10 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".AddVideoAttributeView"
+            android:screenOrientation="portrait"
+            />
+        <activity
             android:name="com.gm375.vidshare.VideoRecord"
             android:configChanges="orientation|keyboardHidden"
             android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
