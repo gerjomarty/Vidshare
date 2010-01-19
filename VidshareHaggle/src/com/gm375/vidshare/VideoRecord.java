@@ -6,8 +6,7 @@ import java.io.IOException;
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
-import android.content.ContentResolver;
-import android.graphics.PixelFormat;
+import android.content.Intent;
 import android.hardware.Camera.Size;
 import android.media.MediaRecorder;
 import android.os.Bundle;
@@ -16,7 +15,6 @@ import android.os.Message;
 import android.util.Log;
 import android.view.OrientationEventListener;
 import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -24,15 +22,19 @@ import android.widget.ImageView;
 
 public class VideoRecord extends Activity implements View.OnClickListener, SurfaceHolder.Callback {
     
-    private boolean isPreviewing = false;
+    private boolean mIsPreviewing = false;
     private VideoPreview mVideoPreview;
     private MediaRecorder mMediaRecorder;
     private int mSavedWidth, mSavedHeight;
+    OrientationEventListener mOrientationListener;
     private android.hardware.Camera mCamera;
     private android.hardware.Camera.Parameters mParameters;
     private ImageView mShutterButton;
     private SurfaceHolder mSurfaceHolder = null;
     int mLastOrientation = OrientationEventListener.ORIENTATION_UNKNOWN;
+    
+    File dir;
+    String filepath;
     
     private static final int STATUS_IDLE = 0;
     private static final int STATUS_RECORDING_VIDEO = 1;
@@ -43,6 +45,7 @@ public class VideoRecord extends Activity implements View.OnClickListener, Surfa
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
+        /*
         // Throw camera opening out to another thread, as it's slow.
         Thread openCameraThread = new Thread(new Runnable() {
             public void run() {
@@ -50,6 +53,18 @@ public class VideoRecord extends Activity implements View.OnClickListener, Surfa
             }
         });
         openCameraThread.start();
+        */
+        
+        // Now need to open Camera in this thread, or else it'll be locked come Video Record time.
+        mCamera = android.hardware.Camera.open();
+        
+        this.mOrientationListener = new OrientationEventListener(this) {
+            public void onOrientationChanged(int orientation) {
+                if (orientation != ORIENTATION_UNKNOWN) {
+                    mLastOrientation = orientation;
+                }
+            }
+        };
         
         Window win = getWindow();
         win.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -66,11 +81,14 @@ public class VideoRecord extends Activity implements View.OnClickListener, Surfa
         
         mMediaRecorder = new MediaRecorder();
         
+        // See comment above.
+        /*
         try {
             openCameraThread.join();
         } catch (InterruptedException e) {
             // TODO: Handle exception
         }
+        */
         
     }
     
@@ -101,7 +119,7 @@ public class VideoRecord extends Activity implements View.OnClickListener, Surfa
     public void startPreview(int w, int h, boolean start) {
         mVideoPreview.setVisibility(View.VISIBLE);
         
-        if (mSavedWidth == w && mSavedHeight == h && isPreviewing)
+        if (mSavedWidth == w && mSavedHeight == h && mIsPreviewing)
             return;
         
         if (isFinishing())
@@ -110,7 +128,7 @@ public class VideoRecord extends Activity implements View.OnClickListener, Surfa
         if (!start)
             return;
         
-        if (isPreviewing)
+        if (mIsPreviewing)
             stopPreview();
         
         try {
@@ -119,6 +137,7 @@ public class VideoRecord extends Activity implements View.OnClickListener, Surfa
             // TODO: Add more to exception.
             mCamera.release();
             mCamera = null;
+            return;
         }
         
         mParameters = mCamera.getParameters();
@@ -131,7 +150,7 @@ public class VideoRecord extends Activity implements View.OnClickListener, Surfa
         
         try {
             mCamera.startPreview();
-            isPreviewing = true;
+            mIsPreviewing = true;
         } catch (Exception e) {
             // TODO: Handle exception
         }
@@ -139,11 +158,11 @@ public class VideoRecord extends Activity implements View.OnClickListener, Surfa
     }
     
     public void stopPreview() {
-        if (mCamera == null || isPreviewing == false)
+        if (mCamera == null || mIsPreviewing == false)
             return;
         
         mCamera.stopPreview();
-        isPreviewing = false;
+        mIsPreviewing = false;
     }
     
     
@@ -159,9 +178,9 @@ public class VideoRecord extends Activity implements View.OnClickListener, Surfa
             if (mStatus == STATUS_IDLE) {
                 startRecordingVideo();                
             } else if (mStatus == STATUS_RECORDING_VIDEO) {
-                //stopRecordingVideo();
+                stopRecordingVideo();
             } else {
-                // nothing here!!!!!!!
+                // nothing here!
             }
             break;
         }
@@ -245,15 +264,26 @@ public class VideoRecord extends Activity implements View.OnClickListener, Surfa
     }
     
     public void startRecordingVideo() {
+        
         stopPreview();
+        
+        closeCamera();
+        
+        //android.hardware.Camera mCameraRecord = android.hardware.Camera.open();
+        
+        // Need to unlock Camera here. Dirty hack is to move the Camera opening back into this thread,
+        // slowing things down considerably. Would be able to unlock camera object in Eclair.
+        
         mStatus = STATUS_RECORDING_VIDEO;
         final int latchedOrientation = roundOrientation(mLastOrientation + 90);
         
         // Quality 75 has visible artifacts, and quality 90 looks great but the files begin to
         // get large. 85 is a good compromise between the two.
-        mParameters.set("jpeg-quality", 85);
-        mParameters.set("rotation", latchedOrientation);
-        mCamera.setParameters(mParameters);
+        //mParameters.set("jpeg-quality", 85);
+        //mParameters.set("rotation", latchedOrientation);
+        //mCamera.setParameters(mParameters);
+        
+        //mMediaRecorder.setCamera(mCameraRecord);
         
         //start recording video
         mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
@@ -262,7 +292,8 @@ public class VideoRecord extends Activity implements View.OnClickListener, Surfa
         mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
         mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H263);
         
-        File dir = new File("/sdcard/Vidshare");
+        dir = new File("/sdcard/Vidshare");
+        
         final String filename = "vidshare-"+ System.currentTimeMillis() +".3gp";
         
         dir.mkdirs();
@@ -270,12 +301,12 @@ public class VideoRecord extends Activity implements View.OnClickListener, Surfa
         if (dir.canWrite() == false)
             dir = getFilesDir();
         
-        final String filepath = dir +"/"+ filename;
+        filepath = dir +"/"+ filename;
         
         mMediaRecorder.setOutputFile(filepath);
         mMediaRecorder.setVideoSize(mSavedWidth, mSavedHeight); // TODO: Size???
         mMediaRecorder.setVideoFrameRate(15); // TODO: Framerate???
-        mMediaRecorder.setPreviewDisplay(mSurfaceHolder.getSurface());
+        mMediaRecorder.setPreviewDisplay(mVideoPreview.getHolder().getSurface());
         
         try {
             mMediaRecorder.prepare();
@@ -291,8 +322,13 @@ public class VideoRecord extends Activity implements View.OnClickListener, Surfa
     public void stopRecordingVideo() {
         mMediaRecorder.stop();
         mMediaRecorder.reset();
+        
+        Intent i = new Intent();
+        i.putExtra("filepath", filepath);
+        setResult(Activity.RESULT_OK, i);
+        
         mStatus = STATUS_IDLE;
-        restartPreview();
+        finish();
     }
     
 }

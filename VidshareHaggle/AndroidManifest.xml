@@ -7,14 +7,23 @@
         android:name=".Vidshare"
         android:icon="@drawable/icon"
         android:label="@string/app_name">
-        <activity android:name=".VSActivity"
-                  android:label="@string/app_name"
-                  android:screenOrientation="portrait">
+        <activity
+            android:name=".VSActivity"
+            android:label="@string/app_name"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name="com.gm375.vidshare.VideoRecord"
+            android:configChanges="orientation|keyboardHidden"
+            android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
+            android:screenOrientation="landscape"
+            android:clearTaskOnLaunch="true"
+            android:taskAffinity="android.task.camera"
+            />
 
     </application>
     

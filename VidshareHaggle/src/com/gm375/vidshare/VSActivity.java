@@ -4,6 +4,7 @@ import org.haggle.DataObject;
 import org.haggle.Interface;
 import org.haggle.Node;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.TabActivity;
@@ -24,10 +25,12 @@ import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TabHost;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class VSActivity extends TabActivity implements OnClickListener, TabHost.OnTabChangeListener {
     
-    public static final int MENU_SHUTDOWN_HAGGLE = 1;
+    public static final int MENU_RECORD_VIDEO = 1;
+    public static final int MENU_SHUTDOWN_HAGGLE = 2;
     
     public static final int REGISTRATION_FAILED_DIALOG = 1;
     public static final int SPAWN_DAEMON_FAILED_DIALOG = 2;
@@ -101,9 +104,9 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
                 String errorMsg = "Unknown error.";
                 
                 if (ret == Vidshare.STATUS_SPAWN_DAEMON_FAILED) {
-                    errorMsg = "PhotoShare could not start Haggle daemon.";
+                    errorMsg = "Vidshare could not start Haggle daemon.";
                 } else if (ret == Vidshare.STATUS_REGISTRATION_FAILED) {
-                    errorMsg = "PhotoShare could not connect to Haggle.";
+                    errorMsg = "Vidshare could not connect to Haggle.";
                 }
                 Log.d(Vidshare.LOG_TAG, "***Registration failed, showing alert dialog.***");
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -214,6 +217,8 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
         //menu.add(0, MENU_INTERESTS, 0, R.string.menu_interests);
         //menu.add(0, MENU_SHUTDOWN_HAGGLE, 0, R.string.menu_shutdown_haggle);
         
+        menu.add(0, MENU_RECORD_VIDEO, 0, "Record Video");
+        
         // TODO: Change "Shutdown Haggle" to a string in XML.
         menu.add(0, MENU_SHUTDOWN_HAGGLE, 0, "Shutdown Haggle");
 
@@ -223,6 +228,7 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
     
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        final Intent i = new Intent();
         
         switch (item.getItemId()) {
         /*
@@ -235,12 +241,34 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
             this.startActivityForResult(i, PhotoShare.ADD_INTEREST_REQUEST);
             return true;
         */
+        case MENU_RECORD_VIDEO:
+            i.setClass(getApplicationContext(), VideoRecord.class);
+            //this.startActivity(i);
+            this.startActivityForResult(i, Vidshare.RECORD_VIDEO_REQUEST);
+            return true;
         case MENU_SHUTDOWN_HAGGLE:
             vs.shutdownHaggle();
             return true;
         }
         
         return false;
+    }
+    
+    
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        
+        if (requestCode == Vidshare.RECORD_VIDEO_REQUEST) {
+            if (resultCode == Activity.RESULT_OK) {
+                String videoFilePath = data.getStringExtra("filepath");
+                
+                Log.d(Vidshare.LOG_TAG, "***Activity result file path is "+ videoFilePath +" ***");
+                
+                
+                // TODO: Continue here with some stuff about attributes. 
+                // In a later revision, move attribute adding to before recording/streaming.
+            }
+        }
     }
     
     
