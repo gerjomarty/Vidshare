@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.OrientationEventListener;
 import android.view.SurfaceHolder;
 import android.view.View;
@@ -329,6 +330,17 @@ public class VideoRecord extends Activity implements View.OnClickListener, Surfa
         
         mStatus = STATUS_IDLE;
         finish();
+    }
+    
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        switch(keyCode) {
+        case KeyEvent.KEYCODE_BACK:
+            if (mStatus == STATUS_RECORDING_VIDEO) {
+                stopRecordingVideo();
+            }
+        }
+        return super.onKeyDown(keyCode, event);
     }
     
 }

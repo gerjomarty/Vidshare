@@ -23,6 +23,7 @@ public class Vidshare extends Application implements org.haggle.EventHandler {
     public static final int STATUS_SPAWN_DAEMON_FAILED = -3;
     
     public static final int RECORD_VIDEO_REQUEST = 10;
+    public static final int ADD_VIDEO_ATTRIBUTES_REQUEST = 11;
     
     
     private VSActivity act = null;

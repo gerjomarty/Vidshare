@@ -268,6 +268,8 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
                 // TODO: Continue here with some stuff about attributes. 
                 // In a later revision, move attribute adding to before recording/streaming.
             }
+        } else if (requestCode == Vidshare.ADD_VIDEO_ATTRIBUTES_REQUEST) {
+            
         }
     }
     
