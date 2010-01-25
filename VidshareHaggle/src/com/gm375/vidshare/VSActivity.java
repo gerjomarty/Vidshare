@@ -18,6 +18,7 @@ import android.content.Intent;
 import android.content.DialogInterface.OnClickListener;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -25,6 +26,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TabHost;
@@ -242,15 +244,15 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
             i.setClass(getApplicationContext(), Camera.class);
             this.startActivityForResult(i, PhotoShare.TAKE_PICTURE_REQUEST);
             return true;
-        case MENU_INTERESTS:
-            i.setClass(getApplicationContext(), InterestView.class);
-            this.startActivityForResult(i, PhotoShare.ADD_INTEREST_REQUEST);
-            return true;
         */
         case MENU_RECORD_VIDEO:
             i.setClass(getApplicationContext(), VideoRecord.class);
             //this.startActivity(i);
             this.startActivityForResult(i, Vidshare.RECORD_VIDEO_REQUEST);
+            return true;
+        case MENU_INTERESTS:
+            i.setClass(getApplicationContext(), InterestView.class);
+            this.startActivityForResult(i, Vidshare.ADD_INTEREST_REQUEST);
             return true;
         case MENU_SHUTDOWN_HAGGLE:
             vs.shutdownHaggle();
@@ -301,8 +303,6 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
                         
                         vs.getHaggleHandle().publishDataObject(dObj);
                         
-                        // TODO: Need to create InterestView class before implementing this.
-                        /*
                         ArrayList<Attribute> aa = new ArrayList<Attribute>();
                         
                         for (int i = 0; i < attrs.length; i++) {
@@ -315,16 +315,39 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
                                 }
                             }
                         }
-                        ps.getHaggleHandle().registerInterests(aa.toArray(new Attribute[aa.size()]));
-                        */
+                        vs.getHaggleHandle().registerInterests(aa.toArray(new Attribute[aa.size()]));
+                        
                         
                     } catch (DataObjectException e) {
                         Log.d(Vidshare.LOG_TAG, "*** Could not create data object for "+ recordedVideoFilepath +" ***");
                     }
                 }
+            } // end if Activity.RESULT_OK
+        } else if (requestCode == Vidshare.ADD_INTEREST_REQUEST) {
+            
+            String[] deletedInterests = data.getStringArrayExtra("deleted");
+            String[] addedInterests = data.getStringArrayExtra("added");
+            
+            if (addedInterests != null && addedInterests.length != 0) {
+                Attribute[] aa = new Attribute[addedInterests.length];
+                for (int i = 0; i < addedInterests.length; i++) {
+                    aa[i] = new Attribute("Picture", addedInterests[i], 1);
+                    Log.d(Vidshare.LOG_TAG, "***Added interest "+ addedInterests[i] +" ***");
+                }
+                vs.getHaggleHandle().registerInterests(aa);
             }
-        } else if (requestCode == 1) {
-            // TODO: More stuff here.
+
+            if (deletedInterests != null && deletedInterests.length != 0) {
+                Attribute[] aa = new Attribute[deletedInterests.length];
+                for (int i = 0; i < deletedInterests.length; i++) {
+                    aa[i] = new Attribute("Picture", deletedInterests[i], 1);
+                    Log.d(Vidshare.LOG_TAG, "***Deleted interest "+ deletedInterests[i] +" ***");
+                }
+                vs.getHaggleHandle().unregisterInterests(aa);
+            }
+            
+        } else {
+            Log.d(Vidshare.LOG_TAG, "***Unknown activity result***");
         }
     }
     
@@ -334,6 +357,30 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
         // TODO Auto-generated method stub
         
     }
+    
+    // TODO: Use this when implementing video gallery thing to play back videos (Will we need this if we're streaming? Probably.)
+    /*
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
+
+        Log.d(Vidshare.LOG_TAG, "***onCreateContextMenu()***");
+        
+        if (v == gallery) {
+            menu.setHeaderTitle("Picture");
+            menu.add("Delete");
+            menu.add("View Attributes");
+            menu.add("Cancel");
+        } else { 
+            // TODO We should check for the correct view like for the gallery
+            /* ListView lv = (ListView) v;
+            NodeAdapter na = (NodeAdapter) lv.getAdapter();
+            */
+            /*
+            menu.setHeaderTitle("Node Information");
+            menu.add("Cancel");
+        }
+    }
+    */
     
     
     public class NodeAdapter extends BaseAdapter {
@@ -447,6 +494,7 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
             case org.haggle.EventHandler.EVENT_NEW_DATAOBJECT:
                 Log.d(Vidshare.LOG_TAG, "EVENT_NEW_DATAOBJECT");
                 // TODO: Do stuff with new data objects.
+                Toast.makeText(getApplicationContext(), "New data object! "+ dObj.getFileName(), Toast.LENGTH_LONG).show();
                 //imgAdpt.updatePictures(dObj);
                 break;
             }

@@ -23,7 +23,8 @@ public class Vidshare extends Application implements org.haggle.EventHandler {
     public static final int STATUS_SPAWN_DAEMON_FAILED = -3;
     
     public static final int RECORD_VIDEO_REQUEST = 10;
-    public static final int ADD_VIDEO_ATTRIBUTES_REQUEST = 11;
+    public static final int ADD_INTEREST_REQUEST = 11;
+    public static final int ADD_VIDEO_ATTRIBUTES_REQUEST = 12;
     
     
     private VSActivity act = null;
@@ -154,8 +155,8 @@ public class Vidshare extends Application implements org.haggle.EventHandler {
     
     @Override
     public void onInterestListUpdate(Attribute[] interests) {
-        // TODO Auto-generated method stub
-        
+        Log.d(Vidshare.LOG_TAG, "***Setting interests (size=" + interests.length + ")***");
+        InterestView.setInterests(interests);
     }
 
     @Override
