@@ -80,6 +80,8 @@ public class VideoRecord extends Activity implements View.OnClickListener, Surfa
         mShutterButton = (ImageView) findViewById(R.id.shutter_button);
         mShutterButton.setOnClickListener(this);
         
+        // FIXME: Can move all of the MediaRecorder guff up to here and have the preview start via this class.
+        // (That *should* work). Then we don't need to worry about opening the camera.
         mMediaRecorder = new MediaRecorder();
         
         // See comment above.
@@ -285,6 +287,9 @@ public class VideoRecord extends Activity implements View.OnClickListener, Surfa
         //mCamera.setParameters(mParameters);
         
         //mMediaRecorder.setCamera(mCameraRecord);
+        
+        // TODO: Take actual low-quality photo here to use as a thumbnail, or else munge with the video later
+        // to grab some frame from the video for the thumbnail.
         
         //start recording video
         mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);

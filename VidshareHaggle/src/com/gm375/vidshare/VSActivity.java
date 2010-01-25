@@ -34,7 +34,8 @@ import android.widget.Toast;
 public class VSActivity extends TabActivity implements OnClickListener, TabHost.OnTabChangeListener {
     
     public static final int MENU_RECORD_VIDEO = 1;
-    public static final int MENU_SHUTDOWN_HAGGLE = 2;
+    public static final int MENU_INTERESTS = 2;
+    public static final int MENU_SHUTDOWN_HAGGLE = 3;
     
     public static final int REGISTRATION_FAILED_DIALOG = 1;
     public static final int SPAWN_DAEMON_FAILED_DIALOG = 2;
@@ -220,10 +221,11 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
         //menu.add(0, MENU_TAKE_PICTURE, 0, R.string.menu_take_picture).setIcon(R.drawable.ic_camera_indicator_photo);
         //menu.add(0, MENU_INTERESTS, 0, R.string.menu_interests);
         //menu.add(0, MENU_SHUTDOWN_HAGGLE, 0, R.string.menu_shutdown_haggle);
+
+        // TODO: Change strings to strings in XML.
         
         menu.add(0, MENU_RECORD_VIDEO, 0, "Record Video");
-        
-        // TODO: Change "Shutdown Haggle" to a string in XML.
+        menu.add(0, MENU_INTERESTS, 0, "Interests");
         menu.add(0, MENU_SHUTDOWN_HAGGLE, 0, "Shutdown Haggle");
 
         return true;

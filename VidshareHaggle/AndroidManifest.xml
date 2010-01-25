@@ -21,6 +21,10 @@
             android:screenOrientation="portrait"
             />
         <activity
+            android:name=".InterestView"
+            android:screenOrientation="portrait"
+            />
+        <activity
             android:name="com.gm375.vidshare.VideoRecord"
             android:configChanges="orientation|keyboardHidden"
             android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
