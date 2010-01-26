@@ -95,8 +95,8 @@ public class InterestView extends Activity {
     @Override
     public boolean onContextItemSelected(MenuItem item) {
         AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
-        
-        deleteInterest(info.position);
+        if (item.getTitle() == "Delete")
+            deleteInterest(info.position);
         
         return true;
     }
