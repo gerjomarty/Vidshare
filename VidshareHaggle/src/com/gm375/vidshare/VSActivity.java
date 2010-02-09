@@ -305,6 +305,9 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
                         
                         ArrayList<Attribute> aa = new ArrayList<Attribute>();
                         
+                        // TODO: Commenting this out to check if video still propagated if video's interests
+                        // not added to sender's interest list.
+                        /*
                         for (int i = 0; i < attrs.length; i++) {
                             
                             // Also add to our interest list in the interest view
@@ -316,6 +319,7 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
                             }
                         }
                         vs.getHaggleHandle().registerInterests(aa.toArray(new Attribute[aa.size()]));
+                         */
                         
                         
                     } catch (DataObjectException e) {

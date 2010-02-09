@@ -182,8 +182,6 @@ public class Vidshare extends Application implements org.haggle.EventHandler {
         
         Log.d(Vidshare.LOG_TAG, "***Got new data object, thread ID = "+ Thread.currentThread().getId() +" ***");
         
-        // TODO: START HERE 25/01/2010
-        // For some reason, the system doesn't seem to be able to get the Video attribute from the dataObject.
         if (dObj.getAttribute("Video", 0) == null) {
             Log.d(Vidshare.LOG_TAG, "***Received data object has no Video attribute***");
             return;
