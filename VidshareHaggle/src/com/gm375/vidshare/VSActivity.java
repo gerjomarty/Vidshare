@@ -79,7 +79,6 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
         
         
         mTabHost.addTab(mTabHost.newTabSpec("tab1").setIndicator(getResources().getText(R.string.tab1)).setContent(R.id.neighbor_list));
-        // TODO: Change second tab to fire an intent to open Video Record class.
         mTabHost.addTab(mTabHost.newTabSpec("tab2").setIndicator(getResources().getText(R.string.tab2)).setContent(R.id.textview2));
         mTabHost.addTab(mTabHost.newTabSpec("tab3").setIndicator(getResources().getText(R.string.tab3)).setContent(R.id.textview3));
         
