@@ -303,24 +303,6 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
                         
                         vs.getHaggleHandle().publishDataObject(dObj);
                         
-                        ArrayList<Attribute> aa = new ArrayList<Attribute>();
-                        
-                        // TODO: Commenting this out to check if video still propagated if video's interests
-                        // not added to sender's interest list.
-                        /*
-                        for (int i = 0; i < attrs.length; i++) {
-                            
-                            // Also add to our interest list in the interest view
-                            synchronized(InterestView.interests) {
-                                if (InterestView.interests.contains(attrs[i]) == false) {
-                                    InterestView.interests.add(attrs[i]);
-                                    aa.add(new Attribute("Video", attrs[i], 1));
-                                }
-                            }
-                        }
-                        vs.getHaggleHandle().registerInterests(aa.toArray(new Attribute[aa.size()]));
-                         */
-                        
                         
                     } catch (DataObjectException e) {
                         Log.d(Vidshare.LOG_TAG, "*** Could not create data object for "+ recordedVideoFilepath +" ***");
