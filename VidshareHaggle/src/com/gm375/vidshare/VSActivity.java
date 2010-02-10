@@ -225,7 +225,7 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
 
         // TODO: Change strings to strings in XML.
         
-        menu.add(0, MENU_RECORD_VIDEO, 0, "Record Video");
+        menu.add(0, MENU_RECORD_VIDEO, 0, "Stream Video");
         menu.add(0, MENU_INTERESTS, 0, "Interests");
         menu.add(0, MENU_SHUTDOWN_HAGGLE, 0, "Shutdown Haggle");
 
@@ -238,16 +238,10 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
         final Intent i = new Intent();
         
         switch (item.getItemId()) {
-        /*
-        case MENU_TAKE_PICTURE:
-            i.setClass(getApplicationContext(), Camera.class);
-            this.startActivityForResult(i, PhotoShare.TAKE_PICTURE_REQUEST);
-            return true;
-        */
         case MENU_RECORD_VIDEO:
-            i.setClass(getApplicationContext(), VideoRecord.class);
-            //this.startActivity(i);
-            this.startActivityForResult(i, Vidshare.RECORD_VIDEO_REQUEST);
+            //i.setClass(getApplicationContext(), VideoRecord.class);
+            i.setClass(getApplicationContext(), AddVideoAttributeView.class);
+            this.startActivityForResult(i, Vidshare.ADD_STREAM_ATTRIBUTES_REQUEST);
             return true;
         case MENU_INTERESTS:
             i.setClass(getApplicationContext(), InterestView.class);
@@ -265,18 +259,17 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         
-        if (requestCode == Vidshare.RECORD_VIDEO_REQUEST) {
+        if (requestCode == Vidshare.ADD_STREAM_ATTRIBUTES_REQUEST) {
             if (resultCode == Activity.RESULT_OK) {
-                String videoFilePath = data.getStringExtra("filepath");
-                
-                Log.d(Vidshare.LOG_TAG, "***Activity result file path is "+ videoFilePath +" ***");
-                
+                // Pass on data Intent with attributes packaged inside.
                 data.setClass(getApplicationContext(), AddVideoAttributeView.class);
-                this.startActivityForResult(data, Vidshare.ADD_VIDEO_ATTRIBUTES_REQUEST);
-                
-                // TODO: In a later revision, move attribute adding to before recording/streaming.
+                this.startActivityForResult(data, Vidshare.STREAM_VIDEO_REQUEST);
             }
-        } else if (requestCode == Vidshare.ADD_VIDEO_ATTRIBUTES_REQUEST) {
+        } else if (requestCode == Vidshare.STREAM_VIDEO_REQUEST) {
+            
+            // TODO: This block will deal with the case when the video stream is stopped
+            // and the last few dObjs of video need to be sent (or cleanup or whatever).
+            
             Log.d(Vidshare.LOG_TAG, "***Got response from add attributes activity.***");
             
             if (resultCode == Activity.RESULT_OK) {

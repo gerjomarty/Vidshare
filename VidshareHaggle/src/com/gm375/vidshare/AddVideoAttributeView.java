@@ -30,13 +30,13 @@ public class AddVideoAttributeView extends Activity {
         super.onCreate(savedInstanceState);
         
         setResult(Activity.RESULT_CANCELED);
-        
+        /*
         filepath = getIntent().getExtras().getString("filepath");
         
         if (filepath == null) {
             finish();
         }
-        
+        */
         setContentView(R.layout.add_video_attribute_view);
         
         entry = (EditText) findViewById(R.id.entry);
@@ -137,7 +137,6 @@ public class AddVideoAttributeView extends Activity {
             }
 
             Intent i = new Intent();
-            i.putExtra("filepath", filepath);
             i.putExtra("attributes", attributeList.toArray(new String[attributeList.size()]));
             
             setResult(RESULT_OK, i);
