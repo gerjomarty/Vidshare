@@ -262,7 +262,7 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
         if (requestCode == Vidshare.ADD_STREAM_ATTRIBUTES_REQUEST) {
             if (resultCode == Activity.RESULT_OK) {
                 // Pass on data Intent with attributes packaged inside.
-                data.setClass(getApplicationContext(), AddVideoAttributeView.class);
+                data.setClass(getApplicationContext(), VideoStream.class);
                 this.startActivityForResult(data, Vidshare.STREAM_VIDEO_REQUEST);
             }
         } else if (requestCode == Vidshare.STREAM_VIDEO_REQUEST) {
