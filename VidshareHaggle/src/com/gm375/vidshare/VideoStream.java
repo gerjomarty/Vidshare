@@ -1,10 +1,14 @@
 package com.gm375.vidshare;
 
 import java.io.File;
+import java.io.IOException;
+
+import com.gm375.vidshare.util.Lollipop;
 
 import android.app.Activity;
 import android.media.MediaRecorder;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.OrientationEventListener;
 import android.view.SurfaceHolder;
 import android.view.View;
@@ -23,6 +27,9 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     private android.hardware.Camera.Parameters mParameters;
     private ImageView mShutterButton;
     private SurfaceHolder mSurfaceHolder = null;
+    private Lollipop mCounter;
+    private Vidshare vs = null;
+    private org.haggle.Handle hh = null;
     
     int mLastOrientation = OrientationEventListener.ORIENTATION_UNKNOWN;
     
@@ -36,9 +43,28 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     private static final int STATUS_STOPPING_STREAM = 2;
     
     private int mStatus = STATUS_IDLE;
+    private int seqNumber;
     
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        mCamera = android.hardware.Camera.open();
+        // TODO: Find some way to quicken this up by shifting to another thread, while preserving locks.
+        
+        this.mOrientationListener = new OrientationEventListener(this) {
+            public void onOrientationChanged(int orientation) {
+                if (orientation != ORIENTATION_UNKNOWN) {
+                    mLastOrientation = orientation;
+                }
+            }
+        };
+        
+        vs = (Vidshare) getApplication();
+        hh = vs.getHaggleHandle();
+        
+        if (hh == null) {
+            Log.e(Vidshare.LOG_TAG, "*** Haggle handle was null. ***");
+        }
         
         Window win = getWindow();
         win.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -53,31 +79,46 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         
         mShutterButton = (ImageView) findViewById(R.id.shutter_button);
         mShutterButton.setOnClickListener(this);
+        
+        mCounter = new Lollipop();
+        
+        
+        
     }
     
-    
-    public MediaRecorder createMediaRecorder(String filename) {
-        MediaRecorder mr = new MediaRecorder();
-        mr.setVideoSource(MediaRecorder.VideoSource.CAMERA);
-        mr.setAudioSource(MediaRecorder.AudioSource.MIC);
-        mr.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-        mr.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-        mr.setVideoEncoder(MediaRecorder.VideoEncoder.H263);
-        mr.setOutputFile(filename);
-        mr.setVideoSize(mSavedWidth, mSavedHeight);
-        mr.setVideoFrameRate(VIDEO_FRAME_RATE);
-        mr.setPreviewDisplay(mSurfaceHolder.getSurface());
-        return mr;
+    public String prepareChunk() throws IOException {
+        File chunkFile = File.createTempFile("vs-"+ hh.getSessionId() +"-"+ mCounter.getNext(), null);
+        String filepath = chunkFile.getPath();
+        mMediaRecorder = createMediaRecorder(filepath);
+        return filepath;
     }
     
-    // TODO: START HERE 11/02/2010: Need to create Util class with Lollipop numbering scheme and associated methods.
-    // Continue fleshing out this class using VideoRecord as a template.
-    // Details on lollipop on del.icio.us 11/02/2010
+    public void onStart() {
+        super.onStart();
+        
+        makeSureCameraIsOpen();
+    }
+    
+    public void onStop() {
+        super.onStop();
+        
+        closeCamera();
+    }
 
     @Override
     public void onClick(View v) {
-        // TODO Auto-generated method stub
-        
+        switch (v.getId()) {
+        case R.id.shutter_button:
+            switch (mStatus) {
+            case STATUS_IDLE:
+                startStreamingVideo();
+                break;
+            case STATUS_STREAMING_VIDEO:
+                stopStreamingVideo();
+                break;
+            }
+            break;
+        }
     }
 
     @Override
@@ -99,6 +140,39 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         
     }
     
+    public MediaRecorder createMediaRecorder(String filename) {
+        MediaRecorder mr = new MediaRecorder();
+        mr.setVideoSource(MediaRecorder.VideoSource.CAMERA);
+        mr.setCamera(mCamera);
+        mr.setAudioSource(MediaRecorder.AudioSource.MIC);
+        mr.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+        mr.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+        mr.setVideoEncoder(MediaRecorder.VideoEncoder.H263);
+        mr.setOutputFile(filename);
+        mr.setVideoSize(mSavedWidth, mSavedHeight);
+        mr.setVideoFrameRate(VIDEO_FRAME_RATE);
+        mr.setPreviewDisplay(mSurfaceHolder.getSurface());
+        return mr;
+    }
     
+    private void makeSureCameraIsOpen() {
+        if (mCamera == null)
+            mCamera = android.hardware.Camera.open();
+    }
+    
+    private void closeCamera() {
+        if (mCamera != null) {
+            mCamera.release();
+            mCamera = null;
+        }
+    }
+    
+    private void startStreamingVideo() {
+        // TODO: Complete method.
+    }
+    
+    private void stopStreamingVideo() {
+        // TODO: Complete method.
+    }
 
 }

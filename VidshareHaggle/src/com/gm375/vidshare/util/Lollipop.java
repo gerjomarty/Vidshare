@@ -10,10 +10,13 @@ public class Lollipop {
     private int currentNo;
     
     public Lollipop() {
-        currentNo = INITIAL_NUMBER;
+        currentNo = INITIAL_NUMBER - 1;
     }
     
-    public int getCurrent() {
+    public int getCurrent() throws Exception {
+        if (currentNo == (INITIAL_NUMBER - 1)) {
+            throw new Exception("getNext() should be called before getCurrent().");
+        }
         return currentNo;
     }
     
