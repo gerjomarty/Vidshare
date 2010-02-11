@@ -72,6 +72,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     
     // TODO: START HERE 11/02/2010: Need to create Util class with Lollipop numbering scheme and associated methods.
     // Continue fleshing out this class using VideoRecord as a template.
+    // Details on lollipop on del.icio.us 11/02/2010
 
     @Override
     public void onClick(View v) {
