@@ -6,9 +6,11 @@ import java.io.IOException;
 import com.gm375.vidshare.util.Lollipop;
 
 import android.app.Activity;
+import android.graphics.PixelFormat;
 import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.OrientationEventListener;
 import android.view.SurfaceHolder;
 import android.view.View;
@@ -124,20 +126,94 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width,
             int height) {
-        // TODO Auto-generated method stub
-        
+        // This is called immediately after any structural changes 
+        // (format or size) have been made to the surface.
+        startPreview(width, height, holder.isCreating());
     }
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        // TODO Auto-generated method stub
-        
+        mSurfaceHolder = holder;
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-        // TODO Auto-generated method stub
+        stopPreview();
+        mSurfaceHolder = null;
+    }
+    
+    public void startPreview(int w, int h, boolean start) {
+        mVideoPreview.setVisibility(View.VISIBLE);
         
+        if (mSavedWidth == w && mSavedHeight == h && mIsPreviewing)
+            return;
+        
+        if (isFinishing())
+            return;
+        
+        if (!start)
+            return;
+        
+        if (mIsPreviewing)
+            stopPreview();
+        
+        try {
+            mCamera.setPreviewDisplay(mSurfaceHolder);
+        } catch (IOException e) {
+            // TODO: Add more to exception.
+            mCamera.release();
+            mCamera = null;
+            return;
+        }
+        
+        mParameters = mCamera.getParameters();
+        mParameters.setPreviewSize(w, h);
+        mSavedWidth = w;
+        mSavedHeight = h;
+        
+        mCamera.setParameters(mParameters);
+        
+        try {
+            mCamera.startPreview();
+            mIsPreviewing = true;
+        } catch (Exception e) {
+            // TODO: Handle exception
+        }
+        
+    }
+    
+    public void stopPreview() {
+        if (mCamera == null || mIsPreviewing == false)
+            return;
+        
+        mCamera.stopPreview();
+        mIsPreviewing = false;
+    }
+    
+    public void restartPreview() {
+        startPreview(mSavedWidth, mSavedHeight, true);
+    }
+    
+    public static int roundOrientation(int orientationInput) {
+        int orientation = orientationInput;
+        if (orientation == -1)
+            orientation = 0;
+
+        orientation = orientation % 360;
+        int retVal;
+        if (orientation < (0*90) + 45) {
+            retVal = 0;
+        } else if (orientation < (1*90) + 45) {
+            retVal = 90;
+        } else if (orientation < (2*90) + 45) {
+            retVal = 180;
+        } else if (orientation < (3*90) + 45) {
+            retVal = 270;
+        } else {
+            retVal = 0;
+        }
+
+        return retVal;
     }
     
     public MediaRecorder createMediaRecorder(String filename) {
@@ -173,6 +249,20 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     
     private void stopStreamingVideo() {
         // TODO: Complete method.
+    }
+    
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        switch (keyCode) {
+        case KeyEvent.KEYCODE_BACK:
+            switch (mStatus) {
+            case STATUS_STREAMING_VIDEO:
+                stopStreamingVideo();
+                break;
+            }
+            break;
+        }
+        return super.onKeyDown(keyCode, event);
     }
 
 }
