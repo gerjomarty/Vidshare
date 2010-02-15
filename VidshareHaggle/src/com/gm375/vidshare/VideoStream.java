@@ -118,6 +118,8 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
                 startStreamingVideo();
                 break;
             case STATUS_STREAMING_VIDEO:
+                // TODO: It's possible this whole method won't get to run.
+                // Need to fix if that is the case.
                 stopStreamingVideo();
                 break;
             }
@@ -253,7 +255,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         isStreaming = true;
         
         while (isStreaming) {
-            int seqNumber = mCounter.getNext();
+            final int seqNumber = mCounter.getNext();
             final String filepath = recordChunk(seqNumber);
             
             publishDObjThread = new Thread(new Runnable() {
@@ -264,6 +266,8 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
                         for (int i = 0; i < attributes.length; i++) {
                             dObj.addAttribute("tag", attributes[i], 1);
                         }
+                        dObj.addAttribute("seqNumber", String.valueOf(seqNumber), 1);
+                        dObj.addAttribute("isLast", String.valueOf(false), 1);
                         // TODO: Add more attributes here.
                         dObj.addHash();
                         vs.getHaggleHandle().publishDataObject(dObj);
@@ -281,6 +285,13 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
             publishDObjThread.join();
             // Ensures streaming has completely stopped before dealing with next case.
             
+            // Send last DataObject with indication the stream is ending.
+            DataObject dObj = new DataObject();
+            dObj.addAttribute("seqNumber", String.valueOf(mCounter.getNext()), 1);
+            dObj.addAttribute("isLast", String.valueOf(true), 1);
+            dObj.addHash();
+            vs.getHaggleHandle().publishDataObject(dObj);
+            
             Thread hasStoppedThread = new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -290,6 +301,9 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
             hasStoppedThread.start();
             
         } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (DataObjectException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }

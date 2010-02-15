@@ -272,34 +272,9 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
             Log.d(Vidshare.LOG_TAG, "***Got response from VideoStream activity.***");
             
             if (resultCode == Activity.RESULT_OK) {
-                String recordedVideoFilepath = data.getStringExtra("filepath");
-                Log.d(Vidshare.LOG_TAG, "***File is: "+ recordedVideoFilepath +" ***");
+                // Stream completely finished.
                 
-                if (recordedVideoFilepath != null) {
-                    String[] attrs = (String[]) data.getStringArrayExtra("attributes");
-                    
-                    if (attrs == null) {
-                        return;                        
-                    }
-                    
-                    try {
-                        DataObject dObj = new DataObject(recordedVideoFilepath);
-                        
-                        for (int i = 0; i < attrs.length; i++) {
-                            Log.d(Vidshare.LOG_TAG, "*** Video has attribute: "+ attrs[i] +" ***");
-                            dObj.addAttribute("Video", attrs[i], 1);
-                        }
-                        
-                        dObj.addHash();
-                        
-                        vs.getHaggleHandle().publishDataObject(dObj);
-                        
-                        
-                    } catch (DataObjectException e) {
-                        Log.d(Vidshare.LOG_TAG, "*** Could not create data object for "+ recordedVideoFilepath +" ***");
-                    }
-                }
-            } // end if Activity.RESULT_OK
+            } 
         } else if (requestCode == Vidshare.ADD_INTEREST_REQUEST) {
             
             String[] deletedInterests = data.getStringArrayExtra("deleted");
