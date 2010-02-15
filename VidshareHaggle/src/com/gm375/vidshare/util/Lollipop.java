@@ -13,9 +13,9 @@ public class Lollipop {
         currentNo = INITIAL_NUMBER - 1;
     }
     
-    public int getCurrent() throws Exception {
+    public int getCurrent() throws IllegalStateException {
         if (currentNo == (INITIAL_NUMBER - 1)) {
-            throw new Exception("getNext() should be called before getCurrent().");
+            throw new IllegalStateException("getNext() should be called before getCurrent().");
         }
         return currentNo;
     }

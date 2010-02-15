@@ -3,6 +3,9 @@ package com.gm375.vidshare;
 import java.io.File;
 import java.io.IOException;
 
+import org.haggle.DataObject;
+import org.haggle.DataObject.DataObjectException;
+
 import com.gm375.vidshare.util.Lollipop;
 
 import android.app.Activity;
@@ -18,7 +21,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 
-public class VideoStream extends Activity implements View.OnClickListener, SurfaceHolder.Callback, MediaRecorder.OnInfoListener {
+public class VideoStream extends Activity implements View.OnClickListener, SurfaceHolder.Callback {
     
     private boolean mIsPreviewing = false;
     private VideoPreview mVideoPreview;
@@ -32,6 +35,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     private Lollipop mCounter;
     private Vidshare vs = null;
     private org.haggle.Handle hh = null;
+    private String[] attributes;
     
     int mLastOrientation = OrientationEventListener.ORIENTATION_UNKNOWN;
     
@@ -85,13 +89,8 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         
         mCounter = new Lollipop();
         
+        attributes = getIntent().getStringArrayExtra("attributes");
         
-        
-    }
-    
-    public void prepareChunk() throws IOException {
-        File chunkFile = File.createTempFile("vs-"+ hh.getSessionId() +"-"+ mCounter.getNext(), null);
-        mMediaRecorder = createMediaRecorder(chunkFile.getPath());
     }
     
     public void onStart() {
@@ -217,14 +216,12 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     
     public MediaRecorder createMediaRecorder(String filename) {
         MediaRecorder mr = new MediaRecorder();
-        mr.setOnInfoListener(this);
         mr.setVideoSource(MediaRecorder.VideoSource.CAMERA);
         mr.setCamera(mCamera);
         mr.setAudioSource(MediaRecorder.AudioSource.MIC);
         mr.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
         mr.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
         mr.setVideoEncoder(MediaRecorder.VideoEncoder.H263);
-        mr.setMaxDuration(MILLISECONDS_PER_CHUNK);
         mr.setOutputFile(filename);
         mr.setVideoSize(mSavedWidth, mSavedHeight);
         mr.setVideoFrameRate(VIDEO_FRAME_RATE);
@@ -248,15 +245,47 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         
         stopPreview();
         
-        try {
-            prepareChunk();
-            mMediaRecorder.prepare();
-            mMediaRecorder.start();            
-        } catch (Exception e) {
-            e.printStackTrace();
-            // TODO: Handle exception.
-        }
+        int seqNumber = mCounter.getNext();
+        final String filepath = streamChunk(seqNumber);
         
+        Thread publishDObjThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    DataObject dObj = new DataObject(filepath);
+                    for (int i = 0; i < attributes.length; i++) {
+                        dObj.addAttribute("tag", attributes[i], 1);
+                    }
+                    // TODO: Add more attributes here.
+                    dObj.addHash();
+                    vs.getHaggleHandle().publishDataObject(dObj);
+                } catch (DataObjectException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        });
+        publishDObjThread.start();
+        
+        // TODO: Add while loop with volatile boolean to loop for each dObj. (?)
+    }
+    
+    private String streamChunk(int seqNumber) {
+        String filepath = null;
+        try {
+            File chunkFile = File.createTempFile("vs-"+ hh.getSessionId() +"-"+ seqNumber, null);
+            // TODO: possible bug here with possible file name clashes.
+            filepath = chunkFile.getPath();
+            mMediaRecorder = createMediaRecorder(filepath);
+            mMediaRecorder.prepare();
+            mMediaRecorder.start();
+            Thread.sleep(MILLISECONDS_PER_CHUNK);
+            mMediaRecorder.stop();
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return filepath;
     }
     
     private void stopStreamingVideo() {
@@ -275,17 +304,6 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
             break;
         }
         return super.onKeyDown(keyCode, event);
-    }
-
-    @Override
-    public void onInfo(MediaRecorder mr, int what, int extra) {
-        switch (what) {
-        case MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED:
-            // TODO: 11/02/2010 CONTINUE HERE
-            // Find some way of getting the filename down to this callback (make it global to class?)
-            // and spawn a thread to publish chunkFile to Haggle. Do stuff with numbering and attributes too.
-            break;
-        }
     }
 
 }
