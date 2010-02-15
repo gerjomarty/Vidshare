@@ -21,7 +21,6 @@ public class AddVideoAttributeView extends Activity {
     
     private ArrayList<String> attributeList = new ArrayList<String>();
     private ArrayAdapter<String> attributeAdpt = null;
-    private String filepath;
     private EditText entry;
     private ListView attributeListView;
 
@@ -30,13 +29,6 @@ public class AddVideoAttributeView extends Activity {
         super.onCreate(savedInstanceState);
         
         setResult(Activity.RESULT_CANCELED);
-        /*
-        filepath = getIntent().getExtras().getString("filepath");
-        
-        if (filepath == null) {
-            finish();
-        }
-        */
         setContentView(R.layout.add_video_attribute_view);
         
         entry = (EditText) findViewById(R.id.entry);

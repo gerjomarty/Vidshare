@@ -25,7 +25,7 @@
             android:screenOrientation="portrait"
             />
         <activity
-            android:name="com.gm375.vidshare.VideoRecord"
+            android:name="com.gm375.vidshare.VideoStream"
             android:configChanges="orientation|keyboardHidden"
             android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
             android:screenOrientation="landscape"
