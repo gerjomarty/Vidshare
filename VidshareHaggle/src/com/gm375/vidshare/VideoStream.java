@@ -248,6 +248,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     private void startStreamingVideo() {
         Thread publishDObjThread = null;
         
+        mStatus = STATUS_STREAMING_VIDEO;
         stopPreview();
         isStreaming = true;
         
