@@ -38,13 +38,11 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     private Vidshare vs = null;
     private org.haggle.Handle hh = null;
     private String[] attributes;
+    
     private volatile boolean isStreaming = false;
     private volatile boolean hasStoppedStreaming = false;
     
     int mLastOrientation = OrientationEventListener.ORIENTATION_UNKNOWN;
-    
-    //File dir;
-    //String filepath;
     
     private static final int VIDEO_FRAME_RATE = 15;
     private static final int MILLISECONDS_PER_CHUNK = 3000;
@@ -58,6 +56,8 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        Log.d(Vidshare.LOG_TAG, "*** VideoStream *** onCreate() ***");
         
         mCamera = android.hardware.Camera.open();
         // TODO: Find some way to quicken this up by shifting to another thread, while preserving locks.
@@ -99,12 +99,14 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     
     public void onStart() {
         super.onStart();
+        Log.d(Vidshare.LOG_TAG, "*** VideoStream *** onStart() ***");
         
         makeSureCameraIsOpen();
     }
     
     public void onStop() {
         super.onStop();
+        Log.d(Vidshare.LOG_TAG, "*** VideoStream *** onStop() ***");
         
         closeCamera();
     }
@@ -113,11 +115,14 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     public void onClick(View v) {
         switch (v.getId()) {
         case R.id.shutter_button:
+            Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Shutter button pressed! ***");
             switch (mStatus) {
             case STATUS_IDLE:
+                Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Idle on shutter ***");
                 startStreamingVideo();
                 break;
             case STATUS_STREAMING_VIDEO:
+                Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Streaming on shutter ***");
                 // TODO: It's possible this whole method won't get to run.
                 // Need to fix if that is the case.
                 stopStreamingVideo();
@@ -132,21 +137,25 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
             int height) {
         // This is called immediately after any structural changes 
         // (format or size) have been made to the surface.
+        Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Surface changed! ***");
         startPreview(width, height, holder.isCreating());
     }
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
+        Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Surface created! ***");
         mSurfaceHolder = holder;
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
+        Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Surface destroyed! ***");
         stopPreview();
         mSurfaceHolder = null;
     }
     
     public void startPreview(int w, int h, boolean start) {
+        Log.d(Vidshare.LOG_TAG, "*** VideoStream *** startPreview() ***");
         mVideoPreview.setVisibility(View.VISIBLE);
         
         if (mSavedWidth == w && mSavedHeight == h && mIsPreviewing)
@@ -164,6 +173,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         try {
             mCamera.setPreviewDisplay(mSurfaceHolder);
         } catch (IOException e) {
+            Log.d(Vidshare.LOG_TAG, "*** VideoStream *** IOException for setting preview display ***");
             // TODO: Add more to exception.
             mCamera.release();
             mCamera = null;
@@ -187,6 +197,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     }
     
     public void stopPreview() {
+        Log.d(Vidshare.LOG_TAG, "*** VideoStream *** stopPreview() ***");
         if (mCamera == null || mIsPreviewing == false)
             return;
         
@@ -195,6 +206,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     }
     
     public void restartPreview() {
+        Log.d(Vidshare.LOG_TAG, "*** VideoStream *** restartPreview() ***");
         startPreview(mSavedWidth, mSavedHeight, true);
     }
     
@@ -221,6 +233,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     }
     
     public MediaRecorder createMediaRecorder(String filename) {
+        Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Creating media recorder ***");
         MediaRecorder mr = new MediaRecorder();
         mr.setVideoSource(MediaRecorder.VideoSource.CAMERA);
         mr.setCamera(mCamera);
@@ -248,6 +261,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     }
     
     private void startStreamingVideo() {
+        Log.d(Vidshare.LOG_TAG, "*** VideoStream *** startStreamingVideo() ***");
         Thread publishDObjThread = null;
         
         mStatus = STATUS_STREAMING_VIDEO;
@@ -257,6 +271,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         while (isStreaming) {
             final int seqNumber = mCounter.getNext();
             final String filepath = recordChunk(seqNumber);
+            Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Streaming sequence "+ seqNumber +" with filepath "+ filepath +" ***");
             
             publishDObjThread = new Thread(new Runnable() {
                 @Override
@@ -272,6 +287,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
                         dObj.addHash();
                         vs.getHaggleHandle().publishDataObject(dObj);
                     } catch (DataObjectException e) {
+                        Log.d(Vidshare.LOG_TAG, "*** VideoStream *** DataObjectException for sequence "+ seqNumber +" ***");
                         // TODO Auto-generated catch block
                         e.printStackTrace();
                     }
@@ -284,13 +300,14 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         try {
             publishDObjThread.join();
             // Ensures streaming has completely stopped before dealing with next case.
-            
+            Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Last publish thread successfully joined ***");
             // Send last DataObject with indication the stream is ending.
             DataObject dObj = new DataObject();
             dObj.addAttribute("seqNumber", String.valueOf(mCounter.getNext()), 1);
             dObj.addAttribute("isLast", String.valueOf(true), 1);
             dObj.addHash();
             vs.getHaggleHandle().publishDataObject(dObj);
+            Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Successfully published sentinel final data object ***");
             
             Thread hasStoppedThread = new Thread(new Runnable() {
                 @Override
@@ -301,9 +318,11 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
             hasStoppedThread.start();
             
         } catch (InterruptedException e) {
+            Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Thread interrupted ***");
             // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (DataObjectException e) {
+            Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Data Object Exception ***");
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
@@ -319,9 +338,11 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
             mMediaRecorder = createMediaRecorder(filepath);
             mMediaRecorder.prepare();
             mMediaRecorder.start();
+            Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Sleeping for "+ MILLISECONDS_PER_CHUNK +" ms ***");
             Thread.sleep(MILLISECONDS_PER_CHUNK);
             mMediaRecorder.stop();
         } catch (Exception e) {
+            Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Exception in recordChunk() ***");
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
@@ -330,32 +351,37 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     
     // TODO: Unsure whether this method will even be allowed to start??
     private void stopStreamingVideo() {
-            Thread stopStreamThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    isStreaming = false;
-                }
-            });
-            stopStreamThread.start();
-            try {
-                stopStreamThread.join();
-                // Ensures thread is done before continuing.
-                while (!hasStoppedStreaming) {
-                    // Busy wait.
-                }
-                setResult(Activity.RESULT_OK);
-                finish();
-            } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+        Log.d(Vidshare.LOG_TAG, "*** VideoStream *** stopStreamingVideo() method STARTED!!! ***");
+        Thread stopStreamThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                isStreaming = false;
             }
-            
+        });
+        stopStreamThread.start();
+        try {
+            stopStreamThread.join();
+            Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Stop Stream thread successfully joined. ***");
+            // Ensures thread is done before continuing.
+            Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Busy wait on hasStoppedStreaming from startStreamingVideo() ***");
+            while (!hasStoppedStreaming) {
+                // Busy wait.
+            }
+            Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Busy wait over ***");
+            setResult(Activity.RESULT_OK);
+            finish();
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
+        
+    }
     
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         switch (keyCode) {
         case KeyEvent.KEYCODE_BACK:
+            Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Back key pressed ***");
             switch (mStatus) {
             case STATUS_STREAMING_VIDEO:
                 stopStreamingVideo();
