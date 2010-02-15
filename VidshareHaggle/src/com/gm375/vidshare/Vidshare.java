@@ -182,8 +182,8 @@ public class Vidshare extends Application implements org.haggle.EventHandler {
         
         Log.d(Vidshare.LOG_TAG, "***Got new data object, thread ID = "+ Thread.currentThread().getId() +" ***");
         
-        if (dObj.getAttribute("Video", 0) == null) {
-            Log.d(Vidshare.LOG_TAG, "***Received data object has no Video attribute***");
+        if (dObj.getAttribute("tag", 0) == null) {
+            Log.d(Vidshare.LOG_TAG, "***Received data object has no tags***");
             return;
         }
         
@@ -197,10 +197,14 @@ public class Vidshare extends Application implements org.haggle.EventHandler {
             return;
         }
         
-        Log.d(Vidshare.LOG_TAG, "***Success! Filepath = "+ filepath +" ***");
+        String seqNumber = dObj.getAttribute("seqNumber", 0).getValue();
+        String isLastDObj = dObj.getAttribute("isLast", 0).getValue();
+        
+        Log.d(Vidshare.LOG_TAG, "***Success! Filepath = "+ filepath +" *** sequence number: "+ seqNumber);
+        Log.d(Vidshare.LOG_TAG, "*** Is this the last data object in stream? -- "+ isLastDObj);
 
         Log.d(Vidshare.LOG_TAG, "Updating UI dobj");
-        act.runOnUiThread(act.new DataUpdater(dObj));
+        //act.runOnUiThread(act.new DataUpdater(dObj));
         
     }
 
