@@ -261,16 +261,15 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
         
         if (requestCode == Vidshare.ADD_STREAM_ATTRIBUTES_REQUEST) {
             if (resultCode == Activity.RESULT_OK) {
-                // Pass on data Intent with attributes packaged inside.
+                // Pass on data Intent with tags packaged inside.
                 data.setClass(getApplicationContext(), VideoStream.class);
                 this.startActivityForResult(data, Vidshare.STREAM_VIDEO_REQUEST);
             }
         } else if (requestCode == Vidshare.STREAM_VIDEO_REQUEST) {
             
-            // TODO: This block will deal with the case when the video stream is stopped
-            // and the last few dObjs of video need to be sent (or cleanup or whatever).
+            // TODO: This block will deal with the case when the video stream is stopped.
             
-            Log.d(Vidshare.LOG_TAG, "***Got response from add attributes activity.***");
+            Log.d(Vidshare.LOG_TAG, "***Got response from VideoStream activity.***");
             
             if (resultCode == Activity.RESULT_OK) {
                 String recordedVideoFilepath = data.getStringExtra("filepath");

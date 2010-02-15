@@ -2,6 +2,7 @@ package com.gm375.vidshare;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.PublicKey;
 
 import org.haggle.DataObject;
 import org.haggle.DataObject.DataObjectException;
@@ -10,6 +11,7 @@ import com.gm375.vidshare.util.Lollipop;
 
 import android.app.Activity;
 import android.graphics.PixelFormat;
+import android.graphics.Paint.Join;
 import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.util.Log;
@@ -36,6 +38,8 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     private Vidshare vs = null;
     private org.haggle.Handle hh = null;
     private String[] attributes;
+    private volatile boolean isStreaming = false;
+    private volatile boolean hasStoppedStreaming = false;
     
     int mLastOrientation = OrientationEventListener.ORIENTATION_UNKNOWN;
     
@@ -242,35 +246,56 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     }
     
     private void startStreamingVideo() {
+        Thread publishDObjThread = null;
         
         stopPreview();
+        isStreaming = true;
         
-        int seqNumber = mCounter.getNext();
-        final String filepath = streamChunk(seqNumber);
-        
-        Thread publishDObjThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    DataObject dObj = new DataObject(filepath);
-                    for (int i = 0; i < attributes.length; i++) {
-                        dObj.addAttribute("tag", attributes[i], 1);
+        while (isStreaming) {
+            int seqNumber = mCounter.getNext();
+            final String filepath = recordChunk(seqNumber);
+            
+            publishDObjThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        DataObject dObj = new DataObject(filepath);
+                        for (int i = 0; i < attributes.length; i++) {
+                            dObj.addAttribute("tag", attributes[i], 1);
+                        }
+                        // TODO: Add more attributes here.
+                        dObj.addHash();
+                        vs.getHaggleHandle().publishDataObject(dObj);
+                    } catch (DataObjectException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
                     }
-                    // TODO: Add more attributes here.
-                    dObj.addHash();
-                    vs.getHaggleHandle().publishDataObject(dObj);
-                } catch (DataObjectException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
                 }
-            }
-        });
-        publishDObjThread.start();
+            });
+            
+            publishDObjThread.start();            
+        }
         
-        // TODO: Add while loop with volatile boolean to loop for each dObj. (?)
+        try {
+            publishDObjThread.join();
+            // Ensures streaming has completely stopped before dealing with next case.
+            
+            Thread hasStoppedThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    hasStoppedStreaming = true;
+                }
+            });
+            hasStoppedThread.start();
+            
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        
     }
     
-    private String streamChunk(int seqNumber) {
+    private String recordChunk(int seqNumber) {
         String filepath = null;
         try {
             File chunkFile = File.createTempFile("vs-"+ hh.getSessionId() +"-"+ seqNumber, null);
@@ -288,9 +313,29 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         return filepath;
     }
     
+    // TODO: Unsure whether this method will even be allowed to start??
     private void stopStreamingVideo() {
-        // TODO: Complete method.
-    }
+            Thread stopStreamThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    isStreaming = false;
+                }
+            });
+            stopStreamThread.start();
+            try {
+                stopStreamThread.join();
+                // Ensures thread is done before continuing.
+                while (!hasStoppedStreaming) {
+                    // Busy wait.
+                }
+                setResult(Activity.RESULT_OK);
+                finish();
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            
+        }
     
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -307,3 +352,4 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     }
 
 }
+
