@@ -446,7 +446,7 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
             case org.haggle.EventHandler.EVENT_NEW_DATAOBJECT:
                 Log.d(Vidshare.LOG_TAG, "EVENT_NEW_DATAOBJECT");
                 // TODO: Do stuff with new data objects.
-                Toast.makeText(getApplicationContext(), "New data object! "+ dObj.getFileName(), Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), "New data object! "+ dObj.getFileName(), Toast.LENGTH_SHORT).show();
                 //imgAdpt.updatePictures(dObj);
                 break;
             }

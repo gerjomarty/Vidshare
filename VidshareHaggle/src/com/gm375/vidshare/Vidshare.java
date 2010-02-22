@@ -28,6 +28,7 @@ public class Vidshare extends Application implements org.haggle.EventHandler {
     
     
     private VSActivity act = null;
+    private VideoStream vidStream = null;
     private org.haggle.Handle hh = null;
     private int status = STATUS_OK;
     
@@ -65,6 +66,11 @@ public class Vidshare extends Application implements org.haggle.EventHandler {
     public void setVSActivity(VSActivity act) {
         Log.d(Vidshare.LOG_TAG, "***Setting Activity***");
         this.act = act;
+    }
+    
+    public void setVideoStream(VideoStream vidStream) {
+        Log.d(Vidshare.LOG_TAG, "***Setting video stream***");
+        this.vidStream = vidStream;
     }
     
     public VSActivity getVSActivity() {
@@ -204,7 +210,7 @@ public class Vidshare extends Application implements org.haggle.EventHandler {
         Log.d(Vidshare.LOG_TAG, "*** Is this the last data object in stream? -- "+ isLastDObj);
 
         Log.d(Vidshare.LOG_TAG, "Updating UI dobj");
-        //act.runOnUiThread(act.new DataUpdater(dObj));
+        act.runOnUiThread(act.new DataUpdater(dObj));
         
     }
 

@@ -36,8 +36,8 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     private SurfaceHolder mSurfaceHolder = null;
     private Lollipop mCounter;
     private Vidshare vs = null;
-    private org.haggle.Handle hh = null;
     private String[] attributes;
+    private long startTime;
     
     private volatile boolean isStreaming = false;
     private volatile boolean hasStoppedStreaming = false;
@@ -71,9 +71,9 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         };
         
         vs = (Vidshare) getApplication();
-        hh = vs.getHaggleHandle();
+        vs.setVideoStream(this);
         
-        if (hh == null) {
+        if (vs.getHaggleHandle() == null) {
             Log.e(Vidshare.LOG_TAG, "*** Haggle handle was null. ***");
         }
         
@@ -95,6 +95,8 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         
         attributes = getIntent().getStringArrayExtra("attributes");
         
+        startTime = System.currentTimeMillis();
+        
     }
     
     public void onStart() {
@@ -109,6 +111,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         Log.d(Vidshare.LOG_TAG, "*** VideoStream *** onStop() ***");
         
         closeCamera();
+        vs.setVideoStream(null);
     }
 
     @Override
@@ -119,7 +122,13 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
             switch (mStatus) {
             case STATUS_IDLE:
                 Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Idle on shutter ***");
-                startStreamingVideo();
+                Thread startStreamThread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        startStreamingVideo();                        
+                    }
+                });
+                startStreamThread.start();
                 break;
             case STATUS_STREAMING_VIDEO:
                 Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Streaming on shutter ***");
@@ -236,7 +245,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Creating media recorder ***");
         MediaRecorder mr = new MediaRecorder();
         mr.setVideoSource(MediaRecorder.VideoSource.CAMERA);
-        mr.setCamera(mCamera);
+        //mr.setCamera(mCamera);
         mr.setAudioSource(MediaRecorder.AudioSource.MIC);
         mr.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
         mr.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
@@ -266,6 +275,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         
         mStatus = STATUS_STREAMING_VIDEO;
         stopPreview();
+        closeCamera();
         isStreaming = true;
         
         while (isStreaming) {
@@ -278,14 +288,24 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
                 public void run() {
                     try {
                         DataObject dObj = new DataObject(filepath);
-                        for (int i = 0; i < attributes.length; i++) {
-                            dObj.addAttribute("tag", attributes[i], 1);
+                        synchronized(attributes) {
+                            for (int i = 0; i < attributes.length; i++) {
+                                dObj.addAttribute("tag", attributes[i], 1);
+                                Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Attribue added: "+ attributes[i] +" ***");
+                            }                            
                         }
                         dObj.addAttribute("seqNumber", String.valueOf(seqNumber), 1);
                         dObj.addAttribute("isLast", String.valueOf(false), 1);
                         // TODO: Add more attributes here.
                         dObj.addHash();
-                        vs.getHaggleHandle().publishDataObject(dObj);
+                        if (dObj == null)
+                            Log.d(Vidshare.LOG_TAG, "*** DOBJ WAS NULL!!! ***");
+                        synchronized(vs) {
+                            Log.d(Vidshare.LOG_TAG, "*** Publishing data object ***");
+                            int ret = vs.getHaggleHandle().publishDataObject(dObj);
+                            if (ret == -1)
+                                Log.e(Vidshare.LOG_TAG, "***!!! Data Object returned error code. !!!***");
+                        }
                     } catch (DataObjectException e) {
                         Log.d(Vidshare.LOG_TAG, "*** VideoStream *** DataObjectException for sequence "+ seqNumber +" ***");
                         // TODO Auto-generated catch block
@@ -294,7 +314,8 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
                 }
             });
             
-            publishDObjThread.start();            
+            //publishDObjThread.start();
+            runOnUiThread(publishDObjThread);
         }
         
         try {
@@ -302,12 +323,38 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
             // Ensures streaming has completely stopped before dealing with next case.
             Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Last publish thread successfully joined ***");
             // Send last DataObject with indication the stream is ending.
-            DataObject dObj = new DataObject();
-            dObj.addAttribute("seqNumber", String.valueOf(mCounter.getNext()), 1);
-            dObj.addAttribute("isLast", String.valueOf(true), 1);
-            dObj.addHash();
-            vs.getHaggleHandle().publishDataObject(dObj);
-            Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Successfully published sentinel final data object ***");
+            
+            Thread publishLastDObjThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    DataObject dObj = null;
+                    try {
+                        dObj = new DataObject();
+                        synchronized(attributes) {
+                            for (int i = 0; i < attributes.length; i++) {
+                                dObj.addAttribute("tag", attributes[i], 1);
+                            }                
+                        }
+                        dObj.addAttribute("seqNumber", String.valueOf(mCounter.getNext()), 1);
+                        dObj.addAttribute("isLast", String.valueOf(true), 1);
+                        dObj.addHash();
+                        if (dObj == null)
+                            Log.d(Vidshare.LOG_TAG, "*** SENTINEL DOBJ WAS NULL!!! ***");
+                        synchronized(vs) {
+                            Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Publishing sentinel final data object ***");
+                            int ret = vs.getHaggleHandle().publishDataObject(dObj);
+                            if (ret == -1)
+                                Log.e(Vidshare.LOG_TAG, "***!!! Data Object returned error code. !!!***");
+                        }
+                    } catch (DataObjectException e) {
+                        Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Data Object Exception ***");
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+            });
+            
+            runOnUiThread(publishLastDObjThread);
             
             Thread hasStoppedThread = new Thread(new Runnable() {
                 @Override
@@ -321,10 +368,6 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
             Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Thread interrupted ***");
             // TODO Auto-generated catch block
             e.printStackTrace();
-        } catch (DataObjectException e) {
-            Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Data Object Exception ***");
-            // TODO Auto-generated catch block
-            e.printStackTrace();
         }
         
     }
@@ -332,7 +375,11 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     private String recordChunk(int seqNumber) {
         String filepath = null;
         try {
-            File chunkFile = File.createTempFile("vs-"+ hh.getSessionId() +"-"+ seqNumber, null);
+            File chunkFile = null;
+            synchronized(vs) {
+                chunkFile = File.createTempFile("vs_"+startTime+"_"+seqNumber, null, new File("/sdcard/Vidshare")); 
+                Log.d(Vidshare.LOG_TAG, "*** VideoStream *** temporary file created ***");
+            }
             // TODO: possible bug here with possible file name clashes.
             filepath = chunkFile.getPath();
             mMediaRecorder = createMediaRecorder(filepath);
@@ -349,7 +396,6 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         return filepath;
     }
     
-    // TODO: Unsure whether this method will even be allowed to start??
     private void stopStreamingVideo() {
         Log.d(Vidshare.LOG_TAG, "*** VideoStream *** stopStreamingVideo() method STARTED!!! ***");
         Thread stopStreamThread = new Thread(new Runnable() {
