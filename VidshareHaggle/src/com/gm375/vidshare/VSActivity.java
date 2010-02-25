@@ -274,6 +274,20 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
             if (resultCode == Activity.RESULT_OK) {
                 // Stream completely finished.
                 
+                Log.d(Vidshare.LOG_TAG, "!!! THIS IS A TEST, WE ARE TESTING IF A DATA OBJECT CAN BE SENT FROM HERE");
+                try {
+                    DataObject dObj = new DataObject();
+                    dObj.addAttribute("tag", "case", 1);
+                    //dObj.addAttribute("Video", "case", 1);
+                    //dObj.addAttribute("Picture", "case", 1);
+                    dObj.addAttribute("testtag", "THIS IS A TEST", 1);
+                    dObj.addHash();
+                    vs.getHaggleHandle().publishDataObject(dObj);
+                } catch (DataObjectException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                
             } 
         } else if (requestCode == Vidshare.ADD_INTEREST_REQUEST) {
             
@@ -283,7 +297,7 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
             if (addedInterests != null && addedInterests.length != 0) {
                 Attribute[] aa = new Attribute[addedInterests.length];
                 for (int i = 0; i < addedInterests.length; i++) {
-                    aa[i] = new Attribute("Video", addedInterests[i], 1);
+                    aa[i] = new Attribute("tag", addedInterests[i], 1);
                     Log.d(Vidshare.LOG_TAG, "***Added interest "+ addedInterests[i] +" ***");
                 }
                 vs.getHaggleHandle().registerInterests(aa);
@@ -292,7 +306,7 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
             if (deletedInterests != null && deletedInterests.length != 0) {
                 Attribute[] aa = new Attribute[deletedInterests.length];
                 for (int i = 0; i < deletedInterests.length; i++) {
-                    aa[i] = new Attribute("Video", deletedInterests[i], 1);
+                    aa[i] = new Attribute("tag", deletedInterests[i], 1);
                     Log.d(Vidshare.LOG_TAG, "***Deleted interest "+ deletedInterests[i] +" ***");
                 }
                 vs.getHaggleHandle().unregisterInterests(aa);

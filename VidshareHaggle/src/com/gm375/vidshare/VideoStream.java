@@ -73,9 +73,11 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         vs = (Vidshare) getApplication();
         vs.setVideoStream(this);
         
+        /*
         if (vs.getHaggleHandle() == null) {
             Log.e(Vidshare.LOG_TAG, "*** Haggle handle was null. ***");
         }
+        */
         
         Window win = getWindow();
         win.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -292,10 +294,12 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
                             for (int i = 0; i < attributes.length; i++) {
                                 dObj.addAttribute("tag", attributes[i], 1);
                                 Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Attribue added: "+ attributes[i] +" ***");
-                            }                            
+                            }
                         }
                         dObj.addAttribute("seqNumber", String.valueOf(seqNumber), 1);
                         dObj.addAttribute("isLast", String.valueOf(false), 1);
+                        dObj.addAttribute("Video", "something", 1);
+                        dObj.addAttribute("Picture", "something", 1);
                         // TODO: Add more attributes here.
                         dObj.addHash();
                         if (dObj == null)
@@ -303,8 +307,10 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
                         synchronized(vs) {
                             Log.d(Vidshare.LOG_TAG, "*** Publishing data object ***");
                             int ret = vs.getHaggleHandle().publishDataObject(dObj);
-                            if (ret == -1)
+                            if (ret == -1) {
                                 Log.e(Vidshare.LOG_TAG, "***!!! Data Object returned error code. !!!***");
+                            }
+                            Log.d(Vidshare.LOG_TAG, "*** Publish return code: "+ ret +" ***");
                         }
                     } catch (DataObjectException e) {
                         Log.d(Vidshare.LOG_TAG, "*** VideoStream *** DataObjectException for sequence "+ seqNumber +" ***");
@@ -314,8 +320,8 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
                 }
             });
             
-            //publishDObjThread.start();
-            runOnUiThread(publishDObjThread);
+            publishDObjThread.start();
+            //runOnUiThread(publishDObjThread);
         }
         
         try {
@@ -337,14 +343,18 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
                         }
                         dObj.addAttribute("seqNumber", String.valueOf(mCounter.getNext()), 1);
                         dObj.addAttribute("isLast", String.valueOf(true), 1);
+                        dObj.addAttribute("Video", "something", 1);
+                        dObj.addAttribute("Picture", "something", 1);
                         dObj.addHash();
                         if (dObj == null)
                             Log.d(Vidshare.LOG_TAG, "*** SENTINEL DOBJ WAS NULL!!! ***");
                         synchronized(vs) {
                             Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Publishing sentinel final data object ***");
                             int ret = vs.getHaggleHandle().publishDataObject(dObj);
-                            if (ret == -1)
+                            if (ret == -1) {
                                 Log.e(Vidshare.LOG_TAG, "***!!! Data Object returned error code. !!!***");
+                            }
+                            Log.d(Vidshare.LOG_TAG, "*** Last object published return code: "+ ret +" ***");
                         }
                     } catch (DataObjectException e) {
                         Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Data Object Exception ***");
@@ -354,7 +364,8 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
                 }
             });
             
-            runOnUiThread(publishLastDObjThread);
+            publishLastDObjThread.start();
+            //runOnUiThread(publishLastDObjThread);
             
             Thread hasStoppedThread = new Thread(new Runnable() {
                 @Override
@@ -375,11 +386,9 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     private String recordChunk(int seqNumber) {
         String filepath = null;
         try {
-            File chunkFile = null;
-            synchronized(vs) {
-                chunkFile = File.createTempFile("vs_"+startTime+"_"+seqNumber, null, new File("/sdcard/Vidshare")); 
-                Log.d(Vidshare.LOG_TAG, "*** VideoStream *** temporary file created ***");
-            }
+            // TODO: dir.mkdirs() etc. to ensure location exists before trying to make file.
+            File chunkFile = new File("/sdcard/Vidshare/vs_"+ startTime +"_"+ seqNumber +".3gp");
+            Log.d(Vidshare.LOG_TAG, "*** VideoStream *** file created ***");
             // TODO: possible bug here with possible file name clashes.
             filepath = chunkFile.getPath();
             mMediaRecorder = createMediaRecorder(filepath);

@@ -77,6 +77,10 @@ public class Vidshare extends Application implements org.haggle.EventHandler {
         return act;
     }
     
+    public VideoStream getVideoStream() {
+        return vidStream;
+    }
+    
     public Handle getHaggleHandle() {
         return hh;
     }
@@ -112,7 +116,7 @@ public class Vidshare extends Application implements org.haggle.EventHandler {
                 Log.e(Vidshare.LOG_TAG, "***Registration failed*** " + e.getMessage());
 
                 if (--tries > 0) {
-                    Handle.unregister("PhotoShare");
+                    Handle.unregister("Vidshare");
                     continue;
                 }
 
@@ -165,23 +169,13 @@ public class Vidshare extends Application implements org.haggle.EventHandler {
         InterestView.setInterests(interests);
     }
 
-    @Override
-    public void onNeighborUpdate(Node[] neighbors) {
-        
-        if (act == null)
-            return;
-        
-        Log.d(Vidshare.LOG_TAG, "***Received neighbour update, Thread ID = "+ Thread.currentThread().getId() +" ***");
-        
-        act.runOnUiThread(act.new DataUpdater(neighbors));
-    }
-
+    
     @Override
     public void onNewDataObject(DataObject dObj) {
         
         // TODO: At the moment, this only responds to a video file. Will probably need to change for streaming.
         
-        if (act == null) {
+        if (act == null && vidStream == null) {
             Log.d(Vidshare.LOG_TAG, "***Activity was null***");
             return;
         }
@@ -193,6 +187,9 @@ public class Vidshare extends Application implements org.haggle.EventHandler {
             return;
         }
         
+        if (dObj.getAttribute("testtag", 0) != null) {
+            Log.d(Vidshare.LOG_TAG, "*** testtag found: "+ dObj.getAttribute("testtag", 0).getValue() +" ***");
+        }
         
         Log.d(Vidshare.LOG_TAG, "***Attempting to get file path***");
         
@@ -214,6 +211,17 @@ public class Vidshare extends Application implements org.haggle.EventHandler {
         
     }
 
+    @Override
+    public void onNeighborUpdate(Node[] neighbors) {
+        
+        if (act == null)
+            return;
+        
+        Log.d(Vidshare.LOG_TAG, "***Received neighbour update, Thread ID = "+ Thread.currentThread().getId() +" ***");
+        
+        act.runOnUiThread(act.new DataUpdater(neighbors));
+    }
+    
     @Override
     public void onShutdown(int reason) {
         
