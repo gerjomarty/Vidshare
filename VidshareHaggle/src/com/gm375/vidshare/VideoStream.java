@@ -39,9 +39,6 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     private String[] attributes;
     private long startTime;
     
-    private volatile boolean isStreaming = false;
-    private volatile boolean hasStoppedStreaming = false;
-    
     int mLastOrientation = OrientationEventListener.ORIENTATION_UNKNOWN;
     
     private static final int VIDEO_FRAME_RATE = 15;
@@ -50,8 +47,9 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     private static final int STATUS_IDLE = 0;
     private static final int STATUS_STREAMING_VIDEO = 1;
     private static final int STATUS_STOPPING_STREAM = 2;
+    private static final int STATUS_STREAM_STOPPED = 3;
     
-    private int mStatus = STATUS_IDLE;
+    private volatile int mStatus = STATUS_IDLE;
     private int seqNumber;
     
     public void onCreate(Bundle savedInstanceState) {
@@ -72,12 +70,6 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         
         vs = (Vidshare) getApplication();
         vs.setVideoStream(this);
-        
-        /*
-        if (vs.getHaggleHandle() == null) {
-            Log.e(Vidshare.LOG_TAG, "*** Haggle handle was null. ***");
-        }
-        */
         
         Window win = getWindow();
         win.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -275,12 +267,11 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         Log.d(Vidshare.LOG_TAG, "*** VideoStream *** startStreamingVideo() ***");
         Thread publishDObjThread = null;
         
-        mStatus = STATUS_STREAMING_VIDEO;
         stopPreview();
         closeCamera();
-        isStreaming = true;
+        mStatus = STATUS_STREAMING_VIDEO;
         
-        while (isStreaming) {
+        while (mStatus == STATUS_STREAMING_VIDEO) {
             final int seqNumber = mCounter.getNext();
             final String filepath = recordChunk(seqNumber);
             Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Streaming sequence "+ seqNumber +" with filepath "+ filepath +" ***");
@@ -297,9 +288,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
                             }
                         }
                         dObj.addAttribute("seqNumber", String.valueOf(seqNumber), 1);
-                        dObj.addAttribute("isLast", String.valueOf(false), 1);
-                        dObj.addAttribute("Video", "something", 1);
-                        dObj.addAttribute("Picture", "something", 1);
+                        //dObj.addAttribute("isLast", "", 1);
                         // TODO: Add more attributes here.
                         dObj.addHash();
                         if (dObj == null)
@@ -321,7 +310,6 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
             });
             
             publishDObjThread.start();
-            //runOnUiThread(publishDObjThread);
         }
         
         try {
@@ -342,9 +330,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
                             }                
                         }
                         dObj.addAttribute("seqNumber", String.valueOf(mCounter.getNext()), 1);
-                        dObj.addAttribute("isLast", String.valueOf(true), 1);
-                        dObj.addAttribute("Video", "something", 1);
-                        dObj.addAttribute("Picture", "something", 1);
+                        dObj.addAttribute("isLast", "", 1);
                         dObj.addHash();
                         if (dObj == null)
                             Log.d(Vidshare.LOG_TAG, "*** SENTINEL DOBJ WAS NULL!!! ***");
@@ -365,12 +351,11 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
             });
             
             publishLastDObjThread.start();
-            //runOnUiThread(publishLastDObjThread);
             
             Thread hasStoppedThread = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    hasStoppedStreaming = true;
+                    mStatus = STATUS_STOPPING_STREAM;
                 }
             });
             hasStoppedThread.start();
@@ -410,7 +395,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         Thread stopStreamThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                isStreaming = false;
+                mStatus = STATUS_STREAM_STOPPED;
             }
         });
         stopStreamThread.start();
@@ -419,7 +404,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
             Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Stop Stream thread successfully joined. ***");
             // Ensures thread is done before continuing.
             Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Busy wait on hasStoppedStreaming from startStreamingVideo() ***");
-            while (!hasStoppedStreaming) {
+            while (mStatus != STATUS_STREAM_STOPPED) {
                 // Busy wait.
             }
             Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Busy wait over ***");
