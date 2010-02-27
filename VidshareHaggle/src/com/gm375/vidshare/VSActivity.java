@@ -1,24 +1,30 @@
 package com.gm375.vidshare;
 
-import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.haggle.Attribute;
 import org.haggle.DataObject;
 import org.haggle.Interface;
 import org.haggle.Node;
-import org.haggle.DataObject.DataObjectException;
+
+import com.gm375.vidshare.util.DateHelper;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Application;
 import android.app.Dialog;
 import android.app.TabActivity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.DialogInterface.OnClickListener;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.ContextMenu;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -26,9 +32,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.BaseAdapter;
+import android.widget.FrameLayout;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -47,8 +54,9 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
     //ArrayAdapter<String> mArrayAdapter = null;
     
     private NodeAdapter nodeAdpt = null;
+    private StreamAdapter streamAdpt = null;
     private Vidshare vs = null;
-    private TextView neighListHeader = null;
+    //private TextView neighListHeader = null;
     private boolean shouldRegisterWithHaggle = true;
     
     /** Called when the activity is first created. */
@@ -63,7 +71,11 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
         vs = (Vidshare) getApplication();
         vs.setVSActivity(this);
         
-        neighListHeader = (TextView) findViewById(R.id.list_header);
+        ListView streamList = (ListView) findViewById(R.id.stream_list);
+        streamAdpt = new StreamAdapter(this);
+        streamList.setAdapter(streamAdpt);
+        
+        //neighListHeader = (TextView) findViewById(R.id.list_header);
         
         ListView neighList = (ListView) findViewById(R.id.neighbor_list);
         nodeAdpt = new NodeAdapter(this);
@@ -77,11 +89,11 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
         
         TabHost mTabHost = getTabHost();
         
-        mTabHost.addTab(mTabHost.newTabSpec("watchTab").setIndicator(getResources().getText(R.string.tab1)).setContent(R.id.textview1));
+        mTabHost.addTab(mTabHost.newTabSpec("watchTab").setIndicator(getResources().getText(R.string.tab1)).setContent(R.id.stream_list));
         mTabHost.addTab(mTabHost.newTabSpec("neighboursTab").setIndicator(getResources().getText(R.string.tab2)).setContent(R.id.neighbor_list));
         mTabHost.addTab(mTabHost.newTabSpec("settingsTab").setIndicator(getResources().getText(R.string.tab3)).setContent(R.id.textview3));
         
-        mTabHost.setCurrentTab(1);
+        mTabHost.setCurrentTab(0);
         setDefaultTab(0);
         
     }
@@ -333,9 +345,79 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
     */
     
     
+    public class StreamAdapter extends BaseAdapter {
+        private Context mContext;
+        private ConcurrentHashMap<String, Stream> mStreamMap;
+        
+        StreamAdapter(Context mContext) {
+            this.mContext = mContext;
+            mStreamMap = ((Vidshare) getApplication()).mStreamMap;
+        }
+
+        @Override
+        public int getCount() {
+            if (mStreamMap == null || mStreamMap.size() == 0) {
+                return 1;
+            }
+            return mStreamMap.size();
+        }
+
+        @Override
+        public Object getItem(int position) {
+            Object obj = mStreamMap.keySet().toArray()[position];
+            Log.d(Vidshare.LOG_TAG, "*** StreamAdapter: getItem("+ position +") = "+ obj +" ***");
+            return obj;
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            RelativeLayout rl;
+            if (convertView == null) {
+                rl = (RelativeLayout) LayoutInflater.from(mContext).inflate(R.layout.stream_list_item, parent, false);
+            } else {
+                rl = (RelativeLayout) convertView;
+            }
+            
+            if (mStreamMap == null || mStreamMap.size() == 0) {
+                ((TextView) rl.findViewById(R.id.stream_list_item_date))
+                    .setText("No streams available.");
+            } else {
+                Stream stream = (Stream) mStreamMap.values().toArray()[position];
+                
+                ((FrameLayout) rl.findViewById(R.id.stream_list_item_thumbnail))
+                    .setForeground(new BitmapDrawable(stream.getThumbnail()));
+                
+                GregorianCalendar cal = new GregorianCalendar();
+                cal.setTimeInMillis(stream.getTimeOfStream());
+                
+                ((TextView) rl.findViewById(R.id.stream_list_item_date))
+                    .setText(DateHelper.dateFormatter(cal));
+                
+                String tags = "Tags:";
+                for (int i = 0; i < stream.getTags().length; i++) {
+                    tags = tags + " " + stream.getTags()[i];
+                }
+                
+                ((TextView) rl.findViewById(R.id.stream_list_item_tags)).setText(tags);
+            }
+            
+            return rl;
+        }
+        
+    }
+    
+    
     public class NodeAdapter extends BaseAdapter {
         private Context mContext;
         private Node[] neighbours = null;
+        
+        // neighbours are updated for use here by synchronised method updateNeighbours(),
+        // which is called from DataUpdater below.
         
         public NodeAdapter(Context mContext) {
             this.mContext = mContext;
@@ -445,6 +527,7 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
                 Log.d(Vidshare.LOG_TAG, "EVENT_NEW_DATAOBJECT");
                 // TODO: Do stuff with new data objects.
                 Toast.makeText(getApplicationContext(), "New data object! "+ dObj.getFileName(), Toast.LENGTH_SHORT).show();
+                
                 //imgAdpt.updatePictures(dObj);
                 break;
             }

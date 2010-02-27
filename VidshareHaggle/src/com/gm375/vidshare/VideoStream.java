@@ -10,9 +10,11 @@ import org.haggle.DataObject.DataObjectException;
 import com.gm375.vidshare.util.Lollipop;
 
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.PixelFormat;
 import android.graphics.Paint.Join;
 import android.media.MediaRecorder;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -38,6 +40,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     private Vidshare vs = null;
     private String[] attributes;
     private long startTime;
+    private String macAddress;
     
     int mLastOrientation = OrientationEventListener.ORIENTATION_UNKNOWN;
     
@@ -90,6 +93,9 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         attributes = getIntent().getStringArrayExtra("attributes");
         
         startTime = System.currentTimeMillis();
+        
+        WifiManager mWifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+        macAddress = mWifiManager.getConnectionInfo().getMacAddress();
         
     }
     
@@ -287,6 +293,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
                         }
                         dObj.addAttribute("seqNumber", String.valueOf(seqNumber), 1);
                         //dObj.addAttribute("isLast", "", 1);
+                        dObj.addAttribute("owner", macAddress, 1);
                         // TODO: Add more attributes here.
                         dObj.addHash();
                         if (dObj == null)
@@ -329,6 +336,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
                         }
                         dObj.addAttribute("seqNumber", String.valueOf(mCounter.getNext()), 1);
                         dObj.addAttribute("isLast", "", 1);
+                        dObj.addAttribute("owner", macAddress, 1);
                         dObj.addHash();
                         if (dObj == null)
                             Log.d(Vidshare.LOG_TAG, "*** SENTINEL DOBJ WAS NULL!!! ***");

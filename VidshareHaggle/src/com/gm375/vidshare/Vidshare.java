@@ -1,5 +1,7 @@
 package com.gm375.vidshare;
 
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.haggle.Attribute;
 import org.haggle.DataObject;
 import org.haggle.Handle;
@@ -30,6 +32,7 @@ public class Vidshare extends Application implements org.haggle.EventHandler {
     private VSActivity act = null;
     private VideoStream vidStream = null;
     private org.haggle.Handle hh = null;
+    ConcurrentHashMap<String, Stream> mStreamMap;
     private int status = STATUS_OK;
     
     @Override
@@ -43,6 +46,8 @@ public class Vidshare extends Application implements org.haggle.EventHandler {
         super.onCreate();
         
         Log.d(Vidshare.LOG_TAG, "Vidshare: ***onCreate() Thread ID = "+ Thread.currentThread().getId() +" ***");
+        
+        mStreamMap = new ConcurrentHashMap<String, Stream>();
         
         // TODO: Get vibrator here, when implementing.
         
