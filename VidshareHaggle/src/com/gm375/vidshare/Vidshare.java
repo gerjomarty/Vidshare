@@ -187,24 +187,27 @@ public class Vidshare extends Application implements org.haggle.EventHandler {
             return;
         }
         
-        if (dObj.getAttribute("testtag", 0) != null) {
-            Log.d(Vidshare.LOG_TAG, "*** testtag found: "+ dObj.getAttribute("testtag", 0).getValue() +" ***");
+        
+        if (dObj.getAttribute("isLast", 0) == null) {
+            // CASE: Proper video packet, video still streaming.
+            
+            Log.d(Vidshare.LOG_TAG, "***Attempting to get file path***");
+            String filepath = dObj.getFilePath();
+            
+            if (filepath == null || filepath.length() == 0) {
+                Log.d(Vidshare.LOG_TAG, "***Bad filepath***");
+                return;
+            }
+            
+            String seqNumber = dObj.getAttribute("seqNumber", 0).getValue();
+            Log.d(Vidshare.LOG_TAG, "***Success! Filepath = "+ filepath +" *** sequence number: "+ seqNumber);
+            
+        } else {
+            // CASE: Sentinel packet to signify stream is ending.
+            
+            String seqNumber = dObj.getAttribute("seqNumber", 0).getValue();
+            Log.d(Vidshare.LOG_TAG, "***Success! FINAL DATA OBJECT, STREAM ENDING *** sequence number: "+ seqNumber);
         }
-        
-        Log.d(Vidshare.LOG_TAG, "***Attempting to get file path***");
-        
-        String filepath = dObj.getFilePath();
-        
-        if (filepath == null || filepath.length() == 0) {
-            Log.d(Vidshare.LOG_TAG, "***Bad filepath***");
-            return;
-        }
-        
-        String seqNumber = dObj.getAttribute("seqNumber", 0).getValue();
-        String isLastDObj = dObj.getAttribute("isLast", 0).getValue();
-        
-        Log.d(Vidshare.LOG_TAG, "***Success! Filepath = "+ filepath +" *** sequence number: "+ seqNumber);
-        Log.d(Vidshare.LOG_TAG, "*** Is this the last data object in stream? -- "+ isLastDObj);
 
         Log.d(Vidshare.LOG_TAG, "Updating UI dobj");
         act.runOnUiThread(act.new DataUpdater(dObj));

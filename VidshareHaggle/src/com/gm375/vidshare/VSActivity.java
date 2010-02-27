@@ -77,7 +77,6 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
         
         TabHost mTabHost = getTabHost();
         
-        
         mTabHost.addTab(mTabHost.newTabSpec("tab1").setIndicator(getResources().getText(R.string.tab1)).setContent(R.id.neighbor_list));
         mTabHost.addTab(mTabHost.newTabSpec("tab2").setIndicator(getResources().getText(R.string.tab2)).setContent(R.id.textview2));
         mTabHost.addTab(mTabHost.newTabSpec("tab3").setIndicator(getResources().getText(R.string.tab3)).setContent(R.id.textview3));
@@ -96,7 +95,6 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
         // reregister with Haggle
         shouldRegisterWithHaggle = false;
     }
-    
     
     @Override
     public void onStart() {
@@ -274,21 +272,7 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
             if (resultCode == Activity.RESULT_OK) {
                 // Stream completely finished.
                 
-                Log.d(Vidshare.LOG_TAG, "!!! THIS IS A TEST, WE ARE TESTING IF A DATA OBJECT CAN BE SENT FROM HERE");
-                try {
-                    DataObject dObj = new DataObject();
-                    dObj.addAttribute("tag", "case", 1);
-                    //dObj.addAttribute("Video", "case", 1);
-                    //dObj.addAttribute("Picture", "case", 1);
-                    dObj.addAttribute("testtag", "THIS IS A TEST", 1);
-                    dObj.addHash();
-                    vs.getHaggleHandle().publishDataObject(dObj);
-                } catch (DataObjectException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-                
-            } 
+            }
         } else if (requestCode == Vidshare.ADD_INTEREST_REQUEST) {
             
             String[] deletedInterests = data.getStringArrayExtra("deleted");

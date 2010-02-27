@@ -126,8 +126,6 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
                 break;
             case STATUS_STREAMING_VIDEO:
                 Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Streaming on shutter ***");
-                // TODO: It's possible this whole method won't get to run.
-                // Need to fix if that is the case.
                 stopStreamingVideo();
                 break;
             }
