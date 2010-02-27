@@ -77,11 +77,11 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
         
         TabHost mTabHost = getTabHost();
         
-        mTabHost.addTab(mTabHost.newTabSpec("tab1").setIndicator(getResources().getText(R.string.tab1)).setContent(R.id.neighbor_list));
-        mTabHost.addTab(mTabHost.newTabSpec("tab2").setIndicator(getResources().getText(R.string.tab2)).setContent(R.id.textview2));
-        mTabHost.addTab(mTabHost.newTabSpec("tab3").setIndicator(getResources().getText(R.string.tab3)).setContent(R.id.textview3));
+        mTabHost.addTab(mTabHost.newTabSpec("watchTab").setIndicator(getResources().getText(R.string.tab1)).setContent(R.id.textview1));
+        mTabHost.addTab(mTabHost.newTabSpec("neighboursTab").setIndicator(getResources().getText(R.string.tab2)).setContent(R.id.neighbor_list));
+        mTabHost.addTab(mTabHost.newTabSpec("settingsTab").setIndicator(getResources().getText(R.string.tab3)).setContent(R.id.textview3));
         
-        mTabHost.setCurrentTab(0);
+        mTabHost.setCurrentTab(1);
         setDefaultTab(0);
         
     }
