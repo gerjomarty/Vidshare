@@ -373,6 +373,10 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
         public long getItemId(int position) {
             return position;
         }
+        
+        public void refresh() {
+            notifyDataSetChanged();
+        }
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {

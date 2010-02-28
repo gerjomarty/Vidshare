@@ -271,7 +271,11 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         Log.d(Vidshare.LOG_TAG, "*** VideoStream *** startStreamingVideo() ***");
         Thread publishDObjThread = null;
         
-        stopPreview();
+        //stopPreview();
+        
+        // Take photo for thumbnail image.
+        
+        
         closeCamera();
         mStatus = STATUS_STREAMING_VIDEO;
         
