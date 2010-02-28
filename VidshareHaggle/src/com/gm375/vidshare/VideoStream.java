@@ -361,7 +361,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
             Thread hasStoppedThread = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    mStatus = STATUS_STOPPING_STREAM;
+                    mStatus = STATUS_STREAM_STOPPED;
                 }
             });
             hasStoppedThread.start();
@@ -401,7 +401,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         Thread stopStreamThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                mStatus = STATUS_STREAM_STOPPED;
+                mStatus = STATUS_STOPPING_STREAM;
             }
         });
         stopStreamThread.start();
