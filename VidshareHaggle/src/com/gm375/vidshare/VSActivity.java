@@ -1,9 +1,11 @@
 package com.gm375.vidshare;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.haggle.Attribute;
@@ -377,6 +379,22 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
         public void refresh() {
             notifyDataSetChanged();
         }
+        
+        public synchronized void updateStreams(DataObject dObj) {
+            String mapKey = dObj.getAttribute("id", 0).getValue();
+            if (dObj.getAttribute("isLast", 0) != null) {
+                if (mStreamMap.containsKey(mapKey)) {
+                    mStreamMap.get(mapKey).addDataObject(dObj);
+                } else {
+                    mStreamMap.put(mapKey, new Stream(dObj));
+                }
+            } else {
+                if (mStreamMap.containsKey(mapKey)) {
+                    mStreamMap.remove(mapKey);
+                }
+            }
+            notifyDataSetChanged();
+        }
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
@@ -397,14 +415,14 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
                     .setForeground(new BitmapDrawable(stream.getThumbnail()));
                 
                 GregorianCalendar cal = new GregorianCalendar();
-                cal.setTimeInMillis(stream.getTimeOfStream());
+                cal.setTimeInMillis(stream.getStartTimeLong());
                 
                 ((TextView) rl.findViewById(R.id.stream_list_item_date))
                     .setText(DateHelper.dateFormatter(cal));
                 
                 String tags = "Tags:";
-                for (int i = 0; i < stream.getTags().length; i++) {
-                    tags = tags + " " + stream.getTags()[i];
+                for (int i = 0; i < stream.getTags().size(); i++) {
+                    tags = tags + " " + stream.getTags().get(i);
                 }
                 
                 ((TextView) rl.findViewById(R.id.stream_list_item_tags)).setText(tags);
@@ -530,9 +548,7 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
             case org.haggle.EventHandler.EVENT_NEW_DATAOBJECT:
                 Log.d(Vidshare.LOG_TAG, "EVENT_NEW_DATAOBJECT");
                 // TODO: Do stuff with new data objects.
-                Toast.makeText(getApplicationContext(), "New data object! "+ dObj.getFileName(), Toast.LENGTH_SHORT).show();
-                
-                //imgAdpt.updatePictures(dObj);
+                streamAdpt.updateStreams(dObj);
                 break;
             }
             Log.d(Vidshare.LOG_TAG, "***Data updater finished***");

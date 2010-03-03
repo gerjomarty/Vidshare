@@ -16,8 +16,12 @@ import android.graphics.Paint.Join;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
 import android.media.MediaRecorder;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.provider.Settings.Secure;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.OrientationEventListener;
@@ -100,8 +104,9 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         
         startTime = System.currentTimeMillis();
         
-        WifiManager mWifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-        macAddress = mWifiManager.getConnectionInfo().getMacAddress();
+        WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+        macAddress = wifiInfo.getMacAddress();
         
     }
     
@@ -324,12 +329,12 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
                                 Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Attribue added: "+ attributes[i] +" ***");
                             }
                         }
+                        dObj.addAttribute("seqNumber", String.valueOf(seqNumber), 1);
+                        dObj.addAttribute("id", macAddress+startTime, 1);
                         while (!isFinishedTakingThumbnail) {
                             // Busy wait.
                         }
                         dObj.setThumbnail(thumbnailData);
-                        dObj.addAttribute("seqNumber", String.valueOf(seqNumber), 1);
-                        dObj.addAttribute("owner", macAddress, 1);
                         // TODO: Add more attributes here.
                         dObj.addHash();
                         if (dObj == null)

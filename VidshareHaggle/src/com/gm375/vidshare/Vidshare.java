@@ -1,5 +1,6 @@
 package com.gm375.vidshare;
 
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.haggle.Attribute;
@@ -33,6 +34,7 @@ public class Vidshare extends Application implements org.haggle.EventHandler {
     private VideoStream vidStream = null;
     private org.haggle.Handle hh = null;
     ConcurrentHashMap<String, Stream> mStreamMap;
+    
     private int status = STATUS_OK;
     
     @Override
