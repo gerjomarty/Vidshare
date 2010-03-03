@@ -13,6 +13,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.PixelFormat;
 import android.graphics.Paint.Join;
+import android.hardware.Camera;
+import android.hardware.Camera.PictureCallback;
 import android.media.MediaRecorder;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -42,6 +44,9 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     private long startTime;
     private String macAddress;
     
+    private JpegPictureCallback mJpegCallback = new JpegPictureCallback();
+    private byte[] thumbnailData;
+    
     int mLastOrientation = OrientationEventListener.ORIENTATION_UNKNOWN;
     
     private static final int VIDEO_FRAME_RATE = 15;
@@ -53,6 +58,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     private static final int STATUS_STREAM_STOPPED = 3;
     
     private volatile int mStatus = STATUS_IDLE;
+    private volatile boolean isFinishedTakingThumbnail = false;
     private int seqNumber;
     
     public void onCreate(Bundle savedInstanceState) {
@@ -159,6 +165,17 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Surface destroyed! ***");
         stopPreview();
         mSurfaceHolder = null;
+    }
+    
+    private final class JpegPictureCallback implements PictureCallback {
+
+        @Override
+        public void onPictureTaken(final byte[] data, Camera camera) {
+                thumbnailData = new byte[data.length];
+                thumbnailData = data.clone();
+                isFinishedTakingThumbnail = true;
+        }
+        
     }
     
     public void startPreview(int w, int h, boolean start) {
@@ -275,8 +292,20 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         
         // Take photo for thumbnail image.
         
+        Camera.Parameters oldParams = mCamera.getParameters();
+        Camera.Parameters thumbParams = mCamera.getParameters();
+        
+        final int latchedOrientation = roundOrientation(mLastOrientation + 90);
+        thumbParams.set("picture-size", "80x60");
+        thumbParams.set("jpeg-quality", 75);
+        thumbParams.set("rotation", latchedOrientation);
+        mCamera.takePicture(null, null, mJpegCallback);
+        
+        mCamera.setParameters(oldParams);
         
         closeCamera();
+        // TODO: See if we can remove this closeCamera() call without things breaking.
+        
         mStatus = STATUS_STREAMING_VIDEO;
         
         while (mStatus == STATUS_STREAMING_VIDEO) {
@@ -295,8 +324,11 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
                                 Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Attribue added: "+ attributes[i] +" ***");
                             }
                         }
+                        while (!isFinishedTakingThumbnail) {
+                            // Busy wait.
+                        }
+                        dObj.setThumbnail(thumbnailData);
                         dObj.addAttribute("seqNumber", String.valueOf(seqNumber), 1);
-                        //dObj.addAttribute("isLast", "", 1);
                         dObj.addAttribute("owner", macAddress, 1);
                         // TODO: Add more attributes here.
                         dObj.addHash();
