@@ -31,7 +31,7 @@ public class Stream {
         startTimeLong = Long.parseLong(startTime);
         
         for (int i = 0; i < dObj.getAttributes().length; i++) {
-            if (dObj.getAttributes()[i].getName() == "tags") {
+            if (dObj.getAttributes()[i].getName() == "tag") {
                 tags.add(dObj.getAttributes()[i].getValue());
             }
         }

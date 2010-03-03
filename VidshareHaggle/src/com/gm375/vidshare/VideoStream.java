@@ -398,6 +398,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
             });
             
             publishLastDObjThread.start();
+            publishLastDObjThread.join();
             
             Thread hasStoppedThread = new Thread(new Runnable() {
                 @Override
