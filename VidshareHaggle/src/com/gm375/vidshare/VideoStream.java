@@ -7,6 +7,7 @@ import java.security.PublicKey;
 import org.haggle.DataObject;
 import org.haggle.DataObject.DataObjectException;
 
+import com.gm375.vidshare.util.Counter;
 import com.gm375.vidshare.util.Lollipop;
 
 import android.app.Activity;
@@ -42,7 +43,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     private android.hardware.Camera.Parameters mParameters;
     private ImageView mShutterButton;
     private SurfaceHolder mSurfaceHolder = null;
-    private Lollipop mCounter;
+    private Counter mCounter;
     private Vidshare vs = null;
     private String[] attributes;
     private long startTime;
@@ -98,7 +99,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         mShutterButton = (ImageView) findViewById(R.id.shutter_button);
         mShutterButton.setOnClickListener(this);
         
-        mCounter = new Lollipop();
+        mCounter = new Counter();
         
         attributes = getIntent().getStringArrayExtra("attributes");
         
