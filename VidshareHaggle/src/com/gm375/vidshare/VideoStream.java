@@ -296,7 +296,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         //stopPreview();
         
         // Take photo for thumbnail image.
-        
+        /*
         Camera.Parameters oldParams = mCamera.getParameters();
         Camera.Parameters thumbParams = mCamera.getParameters();
         
@@ -307,7 +307,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         mCamera.takePicture(null, null, mJpegCallback);
         
         mCamera.setParameters(oldParams);
-        
+        */
         closeCamera();
         // TODO: See if we can remove this closeCamera() call without things breaking.
         
@@ -331,10 +331,12 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
                         }
                         dObj.addAttribute("seqNumber", String.valueOf(seqNumber), 1);
                         dObj.addAttribute("id", macAddress+startTime, 1);
+                        /*
                         while (!isFinishedTakingThumbnail) {
                             // Busy wait.
                         }
                         dObj.setThumbnail(thumbnailData);
+                        */
                         // TODO: Add more attributes here.
                         dObj.addHash();
                         if (dObj == null)
@@ -364,49 +366,38 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
             Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Last publish thread successfully joined ***");
             // Send last DataObject with indication the stream is ending.
             
-            Thread publishLastDObjThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    DataObject dObj = null;
-                    try {
-                        dObj = new DataObject();
-                        synchronized(attributes) {
-                            for (int i = 0; i < attributes.length; i++) {
-                                dObj.addAttribute("tag", attributes[i], 1);
-                            }                
-                        }
-                        dObj.addAttribute("seqNumber", String.valueOf(mCounter.getNext()), 1);
-                        dObj.addAttribute("isLast", "", 1);
-                        dObj.addAttribute("owner", macAddress, 1);
-                        dObj.addHash();
-                        if (dObj == null)
-                            Log.d(Vidshare.LOG_TAG, "*** SENTINEL DOBJ WAS NULL!!! ***");
-                        synchronized(vs) {
-                            Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Publishing sentinel final data object ***");
-                            int ret = vs.getHaggleHandle().publishDataObject(dObj);
-                            if (ret == -1) {
-                                Log.e(Vidshare.LOG_TAG, "***!!! Data Object returned error code. !!!***");
-                            }
-                            Log.d(Vidshare.LOG_TAG, "*** Last object published return code: "+ ret +" ***");
-                        }
-                    } catch (DataObjectException e) {
-                        Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Data Object Exception ***");
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
+            try {
+                DataObject dObj = new DataObject();
+                synchronized(attributes) {
+                    for (int i = 0; i < attributes.length; i++) {
+                        dObj.addAttribute("tag", attributes[i], 1);
+                    }                
+                }
+                dObj.addAttribute("seqNumber", String.valueOf(mCounter.getNext()), 1);
+                dObj.addAttribute("isLast", "true", 1);
+                dObj.addAttribute("owner", macAddress, 1);
+                dObj.addHash();
+                if (dObj == null)
+                    Log.d(Vidshare.LOG_TAG, "*** SENTINEL DOBJ WAS NULL!!! ***");
+                synchronized(vs) {
+                    Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Publishing sentinel final data object ***");
+                    int ret = vs.getHaggleHandle().publishDataObject(dObj);
+                    if (ret == -1) {
+                        Log.e(Vidshare.LOG_TAG, "***!!! Data Object returned error code. !!!***");
                     }
+                    Log.d(Vidshare.LOG_TAG, "*** Last object published return code: "+ ret +" ***");
                 }
-            });
+            } catch (DataObjectException e) {
+                Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Data Object Exception ***");
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+
             
-            publishLastDObjThread.start();
-            publishLastDObjThread.join();
-            
-            Thread hasStoppedThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    mStatus = STATUS_STREAM_STOPPED;
-                }
-            });
-            hasStoppedThread.start();
+            synchronized(this) {
+                // Notify the stopStreamingVideo() method to finish the Activity.
+                notify();
+            }
             
         } catch (InterruptedException e) {
             Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Thread interrupted ***");
@@ -451,11 +442,12 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
             stopStreamThread.join();
             Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Stop Stream thread successfully joined. ***");
             // Ensures thread is done before continuing.
-            Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Busy wait on hasStoppedStreaming from startStreamingVideo() ***");
-            while (mStatus != STATUS_STREAM_STOPPED) {
-                // Busy wait.
+            Log.d(Vidshare.LOG_TAG, "*** VideoStream *** wait() for startStreamingVideo() ***");
+            synchronized(this) {
+                // Wait for last data objects to be completely sent before being notified.
+                wait();
             }
-            Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Busy wait over ***");
+            Log.d(Vidshare.LOG_TAG, "*** VideoStream *** wait() over ***");
             setResult(Activity.RESULT_OK);
             finish();
         } catch (InterruptedException e) {
