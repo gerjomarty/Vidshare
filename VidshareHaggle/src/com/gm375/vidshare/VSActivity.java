@@ -15,6 +15,7 @@ import org.haggle.Node;
 
 import com.gm375.vidshare.util.DateHelper;
 
+import android.R.drawable;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Application;
@@ -24,6 +25,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.DialogInterface.OnClickListener;
+import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.util.Log;
@@ -382,16 +384,13 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
         
         public synchronized void updateStreams(DataObject dObj) {
             String mapKey = dObj.getAttribute("id", 0).getValue();
-            if (dObj.getAttribute("isLast", 0) != null) {
-                if (mStreamMap.containsKey(mapKey)) {
-                    mStreamMap.get(mapKey).addDataObject(dObj);
-                } else {
-                    mStreamMap.put(mapKey, new Stream(dObj));
-                }
+            
+            if (mStreamMap.containsKey(mapKey)) {
+                Log.d(Vidshare.LOG_TAG, "*** updateStreams() *** stream map contains this stream already, adding dObj ***");
+                mStreamMap.get(mapKey).addDataObject(dObj);
             } else {
-                if (mStreamMap.containsKey(mapKey)) {
-                    mStreamMap.remove(mapKey);
-                }
+                Log.d(Vidshare.LOG_TAG, "*** updateStreams() *** stream map does not have this one, creating new entry ***");
+                mStreamMap.put(mapKey, new Stream(dObj));
             }
             notifyDataSetChanged();
         }
@@ -406,13 +405,21 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
             }
             
             if (mStreamMap == null || mStreamMap.size() == 0) {
+                
+                //((FrameLayout) rl.findViewById(R.id.stream_list_item_thumbnail))
+                //    .setForeground(new BitmapDrawable());
+                
                 ((TextView) rl.findViewById(R.id.stream_list_item_date))
                     .setText("No streams available.");
+                
+                ((TextView) rl.findViewById(R.id.stream_list_item_tags))
+                    .setText("");
+                
             } else {
                 Stream stream = (Stream) mStreamMap.values().toArray()[position];
                 
-                ((FrameLayout) rl.findViewById(R.id.stream_list_item_thumbnail))
-                    .setForeground(new BitmapDrawable(stream.getThumbnail()));
+                //((FrameLayout) rl.findViewById(R.id.stream_list_item_thumbnail))
+                //    .setForeground(new BitmapDrawable(stream.getThumbnail()));
                 
                 GregorianCalendar cal = new GregorianCalendar();
                 cal.setTimeInMillis(stream.getStartTimeLong());
@@ -420,12 +427,14 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
                 ((TextView) rl.findViewById(R.id.stream_list_item_date))
                     .setText(DateHelper.dateFormatter(cal));
                 
-                String tags = "Tags:";
-                for (int i = 0; i < stream.getTags().size(); i++) {
-                    tags = tags + " " + stream.getTags().get(i);
+                String tagString = "Tags:";
+                ArrayList<String> tagList = stream.getTags();
+                for (Iterator<String> it = tagList.iterator(); it.hasNext(); ) {
+                    tagString = tagString + " " + it.next();
                 }
                 
-                ((TextView) rl.findViewById(R.id.stream_list_item_tags)).setText(tags);
+                ((TextView) rl.findViewById(R.id.stream_list_item_tags))
+                    .setText(tagString);
             }
             
             return rl;

@@ -374,8 +374,8 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
                     }                
                 }
                 dObj.addAttribute("seqNumber", String.valueOf(mCounter.getNext()), 1);
+                dObj.addAttribute("id", macAddress+startTime, 1);
                 dObj.addAttribute("isLast", "true", 1);
-                dObj.addAttribute("owner", macAddress, 1);
                 dObj.addHash();
                 if (dObj == null)
                     Log.d(Vidshare.LOG_TAG, "*** SENTINEL DOBJ WAS NULL!!! ***");

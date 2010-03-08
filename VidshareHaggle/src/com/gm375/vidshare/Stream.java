@@ -3,10 +3,12 @@ package com.gm375.vidshare;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.haggle.Attribute;
 import org.haggle.DataObject;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.util.Log;
 
 public class Stream {
     private ConcurrentHashMap<Integer, String> chunks;
@@ -17,29 +19,42 @@ public class Stream {
     private long startTimeLong;
     private Bitmap thumbnail;
     
+    // TODO: Add logic here that can detect when the last data object comes in, so the stream can be removed.
+    // Also need logic here that deals with out of order data objects.
+    // Cannot just destroy the stream when the last dObj comes in -- need to check we've displayed all of them.
+    
     Stream(DataObject dObj) {
+        Log.d(Vidshare.LOG_TAG, "*** Stream constructor *** creating stream ***");
         chunks = new ConcurrentHashMap<Integer, String>();
         id = dObj.getAttribute("id", 0).getValue();
+        Log.d(Vidshare.LOG_TAG, "*** Stream constructor *** dObj ID = "+ id +" ***");
         
         // MAC Address example: 00:23:76:07:e8:b5
         // MAC address length:  01234567890123456 length 17
         macAddress = id.substring(0, 17);
+        Log.d(Vidshare.LOG_TAG, "*** Stream constructor *** MAC address = "+ macAddress +" ***");
         // Start time example: 1267652761287
         // Start time length:  7890123456789 length 13
         startTime = id.substring(17, 30);
+        Log.d(Vidshare.LOG_TAG, "*** Stream constructor *** start Time = "+ startTime +" ***");
         
         startTimeLong = Long.parseLong(startTime);
         
-        for (int i = 0; i < dObj.getAttributes().length; i++) {
-            if (dObj.getAttributes()[i].getName() == "tag") {
-                tags.add(dObj.getAttributes()[i].getValue());
+        tags = new ArrayList<String>();
+        Attribute[] attributes = dObj.getAttributes();
+        
+        for (Attribute attr : attributes) {
+            if (attr.getName() == "tag") {
+                tags.add(attr.getValue());
             }
         }
         
+        /*
         int size = (int) dObj.getThumbnailSize();
         byte[] data = new byte[size];
         dObj.getThumbnail(data);
         thumbnail = BitmapFactory.decodeByteArray(data, 0, size);
+        */
     }
     
     public void addDataObject(DataObject dObj) {
