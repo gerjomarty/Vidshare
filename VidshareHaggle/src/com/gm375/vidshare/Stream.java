@@ -14,7 +14,7 @@ public class Stream {
     private ConcurrentHashMap<Integer, String> chunks;
     private ArrayList<String> tags;
     private String id;
-    private String macAddress;
+    private String androidId;
     private String startTime;
     private long startTimeLong;
     private Bitmap thumbnail;
@@ -29,10 +29,12 @@ public class Stream {
         id = dObj.getAttribute("id", 0).getValue();
         Log.d(Vidshare.LOG_TAG, "*** Stream constructor *** dObj ID = "+ id +" ***");
         
+        // TODO: Start here 22/03/2010 - Redo this example with Android ID.
+        // Continue testing and implementing Stream viewer.
         // MAC Address example: 00:23:76:07:e8:b5
         // MAC address length:  01234567890123456 length 17
-        macAddress = id.substring(0, 17);
-        Log.d(Vidshare.LOG_TAG, "*** Stream constructor *** MAC address = "+ macAddress +" ***");
+        androidId = id.substring(0, 17);
+        Log.d(Vidshare.LOG_TAG, "*** Stream constructor *** Android ID = "+ androidId +" ***");
         // Start time example: 1267652761287
         // Start time length:  7890123456789 length 13
         startTime = id.substring(17, 30);
@@ -68,7 +70,7 @@ public class Stream {
     }
     
     public String getMacAddress() {
-        return macAddress;
+        return androidId;
     }
     
     public String getStartTime() {

@@ -47,7 +47,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     private Vidshare vs = null;
     private String[] attributes;
     private long startTime;
-    private String macAddress;
+    private String androidId;
     
     private JpegPictureCallback mJpegCallback = new JpegPictureCallback();
     private byte[] thumbnailData;
@@ -105,9 +105,13 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         
         startTime = System.currentTimeMillis();
         
+        /*
         WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
         WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-        macAddress = wifiInfo.getMacAddress();
+         */
+        androidId = android.provider.Settings.Secure.getString(getContentResolver(), 
+                android.provider.Settings.Secure.ANDROID_ID);
+        
         
     }
     
@@ -331,7 +335,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
                             }
                         }
                         dObj.addAttribute("seqNumber", String.valueOf(seqNumber), 1);
-                        dObj.addAttribute("id", macAddress+startTime, 1);
+                        dObj.addAttribute("id", androidId+startTime, 1);
                         /*
                         while (!isFinishedTakingThumbnail) {
                             // Busy wait.
@@ -375,7 +379,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
                     }                
                 }
                 dObj.addAttribute("seqNumber", String.valueOf(mCounter.getNext()), 1);
-                dObj.addAttribute("id", macAddress+startTime, 1);
+                dObj.addAttribute("id", androidId+startTime, 1);
                 dObj.addAttribute("isLast", "true", 1);
                 dObj.addHash();
                 if (dObj == null)
