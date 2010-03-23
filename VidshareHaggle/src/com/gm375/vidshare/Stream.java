@@ -31,13 +31,13 @@ public class Stream {
         
         // TODO: Start here 22/03/2010 - Redo this example with Android ID.
         // Continue testing and implementing Stream viewer.
-        // MAC Address example: 00:23:76:07:e8:b5
-        // MAC address length:  01234567890123456 length 17
-        androidId = id.substring(0, 17);
+        // ID example: 0000000000000000
+        // ID length:  0123456789012345 length 16
+        androidId = id.substring(0, 16);
         Log.d(Vidshare.LOG_TAG, "*** Stream constructor *** Android ID = "+ androidId +" ***");
         // Start time example: 1267652761287
-        // Start time length:  7890123456789 length 13
-        startTime = id.substring(17, 30);
+        // Start time length:  6789012345678 length 13
+        startTime = id.substring(16, 29);
         Log.d(Vidshare.LOG_TAG, "*** Stream constructor *** start Time = "+ startTime +" ***");
         
         startTimeLong = Long.parseLong(startTime);
