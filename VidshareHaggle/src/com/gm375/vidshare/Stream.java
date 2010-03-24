@@ -29,9 +29,7 @@ public class Stream {
         id = dObj.getAttribute("id", 0).getValue();
         Log.d(Vidshare.LOG_TAG, "*** Stream constructor *** dObj ID = "+ id +" ***");
         
-        // TODO: Start here 22/03/2010 - Redo this example with Android ID.
-        // Continue testing and implementing Stream viewer.
-        // ID example: 0000000000000000
+        // ID example: 0123456789abcdef
         // ID length:  0123456789012345 length 16
         androidId = id.substring(0, 16);
         Log.d(Vidshare.LOG_TAG, "*** Stream constructor *** Android ID = "+ androidId +" ***");
@@ -43,7 +41,7 @@ public class Stream {
         startTimeLong = Long.parseLong(startTime);
         
         tags = new ArrayList<String>();
-        Attribute[] attributes = dObj.getAttributes();
+        Attribute[] attributes = dObj.getAttributes().clone();
         
         for (Attribute attr : attributes) {
             if (attr.getName() == "tag") {
@@ -61,15 +59,19 @@ public class Stream {
     
     public void addDataObject(DataObject dObj) {
         Integer seqNumber = Integer.decode(dObj.getAttribute("seqNumber", 0).getValue());
-        String filepath = dObj.getFilePath();
-        chunks.put(seqNumber, filepath);
+        if (dObj.getAttribute("isLast", 0).getValue() == null) {
+            String filepath = dObj.getFilePath();
+            chunks.put(seqNumber, filepath);
+        } else {
+            //CASE: last data object
+        }
     }
     
     public ArrayList<String> getTags() {
         return tags;
     }
     
-    public String getMacAddress() {
+    public String getAndroidId() {
         return androidId;
     }
     
