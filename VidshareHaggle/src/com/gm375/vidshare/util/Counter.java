@@ -2,8 +2,8 @@ package com.gm375.vidshare.util;
 
 public class Counter {
     
-    private static final int INITIAL_NUMBER = Integer.MIN_VALUE + 2;
-    private static final int MAXIMUM_NUMBER = Integer.MAX_VALUE - 1;
+    public static final int INITIAL_NUMBER = Integer.MIN_VALUE + 2;
+    public static final int MAXIMUM_NUMBER = Integer.MAX_VALUE - 1;
     
     private int currentNo;
     

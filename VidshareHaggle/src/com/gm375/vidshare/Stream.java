@@ -1,6 +1,9 @@
 package com.gm375.vidshare;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.haggle.Attribute;
@@ -18,6 +21,13 @@ public class Stream {
     private String startTime;
     private long startTimeLong;
     private Bitmap thumbnail;
+    
+    private boolean isBeingViewed = false;
+    
+    // These vars used for the sequenceChunks() algorithm.
+    private Set<Integer> expected = new HashSet<Integer>();
+    private Set<Integer> toFire = new TreeSet<Integer>();
+    private Integer lastFiredNumber = new Integer(com.gm375.vidshare.util.Counter.INITIAL_NUMBER - 1);
     
     // TODO: Add logic here that can detect when the last data object comes in, so the stream can be removed.
     // Also need logic here that deals with out of order data objects.
@@ -55,6 +65,8 @@ public class Stream {
         dObj.getThumbnail(data);
         thumbnail = BitmapFactory.decodeByteArray(data, 0, size);
         */
+        
+        addDataObject(dObj);
     }
     
     public void addDataObject(DataObject dObj) {
@@ -62,9 +74,47 @@ public class Stream {
         if (dObj.getAttribute("isLast", 0).getValue() == null) {
             String filepath = dObj.getFilePath();
             chunks.put(seqNumber, filepath);
+            if (isBeingViewed) {
+                sequenceChunks(seqNumber, dObj);
+            }
         } else {
             //CASE: last data object
         }
+    }
+    
+    private void sequenceChunks(Integer seqNumber, DataObject dObj) {
+        
+        if (seqNumber == (lastFiredNumber + 1)) {
+            
+            expected.remove(seqNumber);
+            // TODO: Fire dObj seqNumber
+            int current = seqNumber;
+            for (Integer toFireNumber : toFire) {
+                if (toFireNumber == (current + 1)) {
+                    // TODO: Fire dObj toFireNumber
+                    toFire.remove(toFireNumber);
+                    current++;
+                } else {
+                    break;
+                }
+            }
+            lastFiredNumber = current;
+            
+        } else if (seqNumber > (lastFiredNumber + 1)) {
+            
+            expected.remove(seqNumber);
+            toFire.add(seqNumber);
+            // Need to work out expected packets that haven't arrived.
+            for (int i = (lastFiredNumber + 1); i < seqNumber; i++) {
+                if (!toFire.contains(i) && !expected.contains(i)) {
+                    expected.add(i);
+                }
+            }
+            
+        } else {
+            Log.e(Vidshare.LOG_TAG, "***!!! We really should never be in this situation. !!!***");
+        }
+        
     }
     
     public ArrayList<String> getTags() {
@@ -85,6 +135,14 @@ public class Stream {
     
     public Bitmap getThumbnail() {
         return thumbnail;
+    }
+    
+    public boolean getBeingViewed() {
+        return isBeingViewed;
+    }
+    
+    public void setBeingViewed(boolean b) {
+        isBeingViewed = b;
     }
     
     public int hashCode() {
