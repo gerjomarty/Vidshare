@@ -23,15 +23,14 @@ public class Stream {
     private Bitmap thumbnail;
     
     private boolean isBeingViewed = false;
+    private boolean streamEnding = false;
+    private boolean streamEnded = false;
     
     // These vars used for the sequenceChunks() algorithm.
     private Set<Integer> expected = new HashSet<Integer>();
     private Set<Integer> toFire = new TreeSet<Integer>();
     private Integer lastFiredNumber = new Integer(com.gm375.vidshare.util.Counter.INITIAL_NUMBER - 1);
     
-    // TODO: Add logic here that can detect when the last data object comes in, so the stream can be removed.
-    // Also need logic here that deals with out of order data objects.
-    // Cannot just destroy the stream when the last dObj comes in -- need to check we've displayed all of them.
     
     Stream(DataObject dObj) {
         Log.d(Vidshare.LOG_TAG, "*** Stream constructor *** creating stream ***");
@@ -70,28 +69,42 @@ public class Stream {
     }
     
     public void addDataObject(DataObject dObj) {
+        
         Integer seqNumber = Integer.decode(dObj.getAttribute("seqNumber", 0).getValue());
-        if (dObj.getAttribute("isLast", 0).getValue() == null) {
-            String filepath = dObj.getFilePath();
-            chunks.put(seqNumber, filepath);
-            if (isBeingViewed) {
-                sequenceChunks(seqNumber, dObj);
-            }
-        } else {
-            //CASE: last data object
+        String filepath = dObj.getFilePath();
+        
+        if (dObj.getAttribute("isLast", 0).getValue() != null) {
+            streamEnding = true;
         }
+        
+        if (!streamEnding) {
+            chunks.put(seqNumber, filepath);
+            sequenceChunks(seqNumber, filepath);
+        } else {
+            if (!toFire.isEmpty()) {
+                chunks.put(seqNumber, filepath);
+                sequenceChunks(seqNumber, filepath);
+            } else {
+                streamEnded = true;
+            }
+        }
+        
     }
     
-    private void sequenceChunks(Integer seqNumber, DataObject dObj) {
+    private void sequenceChunks(Integer seqNumber, String filepath) {
         
         if (seqNumber == (lastFiredNumber + 1)) {
             
             expected.remove(seqNumber);
-            // TODO: Fire dObj seqNumber
+            if (isBeingViewed) {
+                // TODO: Fire object no. seqNumber
+            }
             int current = seqNumber;
             for (Integer toFireNumber : toFire) {
                 if (toFireNumber == (current + 1)) {
-                    // TODO: Fire dObj toFireNumber
+                    if (isBeingViewed) {
+                        // TODO: Fire object no. toFireNumber
+                    }
                     toFire.remove(toFireNumber);
                     current++;
                 } else {
@@ -139,6 +152,10 @@ public class Stream {
     
     public boolean getBeingViewed() {
         return isBeingViewed;
+    }
+    
+    public boolean hasStreamEnded() {
+        return streamEnded;
     }
     
     public void setBeingViewed(boolean b) {
