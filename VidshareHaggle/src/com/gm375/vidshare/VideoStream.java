@@ -2,27 +2,15 @@ package com.gm375.vidshare;
 
 import java.io.File;
 import java.io.IOException;
-import java.security.PublicKey;
 
 import org.haggle.DataObject;
 import org.haggle.DataObject.DataObjectException;
 
-import com.gm375.vidshare.util.Counter;
-import com.gm375.vidshare.util.Lollipop;
-
 import android.app.Activity;
-import android.content.Context;
-import android.graphics.PixelFormat;
-import android.graphics.Paint.Join;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
 import android.media.MediaRecorder;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.provider.Settings.Secure;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.OrientationEventListener;
@@ -31,6 +19,8 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
+
+import com.gm375.vidshare.util.Counter;
 
 public class VideoStream extends Activity implements View.OnClickListener, SurfaceHolder.Callback {
     

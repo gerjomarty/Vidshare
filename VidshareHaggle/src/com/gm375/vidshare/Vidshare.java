@@ -1,6 +1,5 @@
 package com.gm375.vidshare;
 
-import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.haggle.Attribute;

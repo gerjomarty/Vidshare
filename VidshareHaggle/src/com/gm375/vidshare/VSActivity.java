@@ -1,11 +1,6 @@
 package com.gm375.vidshare;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.haggle.Attribute;
@@ -13,20 +8,14 @@ import org.haggle.DataObject;
 import org.haggle.Interface;
 import org.haggle.Node;
 
-import com.gm375.vidshare.util.DateHelper;
-
-import android.R.drawable;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Application;
 import android.app.Dialog;
 import android.app.TabActivity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.DialogInterface.OnClickListener;
-import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -37,12 +26,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.BaseAdapter;
-import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TabHost;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import com.gm375.vidshare.util.DateHelper;
 
 public class VSActivity extends TabActivity implements OnClickListener, TabHost.OnTabChangeListener {
     

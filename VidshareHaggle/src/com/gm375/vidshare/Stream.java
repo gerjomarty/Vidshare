@@ -3,7 +3,6 @@ package com.gm375.vidshare;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.TreeSet;
@@ -13,7 +12,6 @@ import org.haggle.Attribute;
 import org.haggle.DataObject;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.util.Log;
 
 public class Stream {
