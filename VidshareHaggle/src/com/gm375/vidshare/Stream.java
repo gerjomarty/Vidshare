@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -18,6 +20,7 @@ public class Stream {
     
     // Max number of dObjs that will be held.
     private final static int MAX_LENGTH_OF_TOFIRE_LIST = 3;
+    private final static long TIMEOUT_IN_MILLISECONDS = 15000;
     
     private ConcurrentHashMap<Integer, String> chunks;
     private ArrayList<String> tags;
@@ -26,6 +29,9 @@ public class Stream {
     private String startTime;
     private long startTimeLong;
     private Bitmap thumbnail;
+    
+    private Timer timeoutTimer;
+    private TimeoutTask timeoutTask;
     
     private boolean isBeingViewed = false;
     private boolean streamEnding = false;
@@ -71,6 +77,9 @@ public class Stream {
         */
         
         addDataObject(dObj);
+        
+        timeoutTimer = new Timer(true);
+        timeoutTask = new TimeoutTask();
     }
     
     public void addDataObject(DataObject dObj) {
@@ -93,6 +102,10 @@ public class Stream {
                 streamEnded = true;
             }
         }
+        
+        timeoutTask.cancel();
+        timeoutTask = new TimeoutTask();
+        timeoutTimer.schedule(timeoutTask, TIMEOUT_IN_MILLISECONDS);
         
     }
     
@@ -213,5 +226,12 @@ public class Stream {
             return true;
         }
         return false;
+    }
+    
+    private class TimeoutTask extends TimerTask {
+        @Override
+        public void run() {
+            // TODO: Fire off a message that a timeout has been reached. Cancel stream.
+        }
     }
 }
