@@ -130,8 +130,8 @@ public class Stream {
         
     }
     
-    public ArrayList<String> getTags() {
-        return tags;
+    public String[] getTags() {
+        return (String[]) tags.toArray();
     }
     
     public String getAndroidId() {

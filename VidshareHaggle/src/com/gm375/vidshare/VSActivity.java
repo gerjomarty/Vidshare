@@ -433,9 +433,9 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
                     .setText(DateHelper.dateFormatter(cal));
                 
                 String tagString = "Tags:";
-                ArrayList<String> tagList = stream.getTags();
-                for (Iterator<String> it = tagList.iterator(); it.hasNext(); ) {
-                    tagString = tagString + " " + it.next();
+                String[] tagArray = stream.getTags();
+                for (String tagElement : tagArray) {
+                    tagString = tagString + " " + tagElement;
                 }
                 
                 ((TextView) rl.findViewById(R.id.stream_list_item_tags))
