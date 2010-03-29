@@ -384,7 +384,7 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
                 
             } else {
                 Log.d(Vidshare.LOG_TAG, "*** updateStreams() *** stream map does not have this one, creating new entry ***");
-                mStreamMap.put(mapKey, new Stream(dObj));
+                mStreamMap.put(mapKey, new Stream(dObj, vs));
             }
             notifyDataSetChanged();
         }

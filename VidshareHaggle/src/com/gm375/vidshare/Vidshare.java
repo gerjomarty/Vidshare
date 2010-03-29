@@ -31,6 +31,7 @@ public class Vidshare extends Application implements org.haggle.EventHandler {
     
     private VSActivity act = null;
     private VideoStream vidStream = null;
+    private StreamViewer streamViewer = null;
     private org.haggle.Handle hh = null;
     ConcurrentHashMap<String, Stream> mStreamMap;
     
@@ -79,12 +80,21 @@ public class Vidshare extends Application implements org.haggle.EventHandler {
         this.vidStream = vidStream;
     }
     
+    public void setStreamViewer(StreamViewer streamViewer) {
+        Log.d(Vidshare.LOG_TAG, "***Setting stream viewer***");
+        this.streamViewer = streamViewer;
+    }
+    
     public VSActivity getVSActivity() {
         return act;
     }
     
     public VideoStream getVideoStream() {
         return vidStream;
+    }
+    
+    public StreamViewer getStreamViewer() {
+        return streamViewer;
     }
     
     public Handle getHaggleHandle() {

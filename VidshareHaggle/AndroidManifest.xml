@@ -25,6 +25,12 @@
             android:screenOrientation="portrait"
             />
         <activity
+            android:name=".StreamViewer"
+            android:configChanges="orientation|keyboardHidden"
+            android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
+            android:screenOrientation="landscape"
+            />
+        <activity
             android:name="com.gm375.vidshare.VideoStream"
             android:configChanges="orientation|keyboardHidden"
             android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"

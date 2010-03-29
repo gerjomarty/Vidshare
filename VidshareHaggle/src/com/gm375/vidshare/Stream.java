@@ -11,6 +11,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.haggle.Attribute;
 import org.haggle.DataObject;
 
+import com.gm375.vidshare.listenerstuff.DataObjectEvent;
+
 import android.graphics.Bitmap;
 import android.util.Log;
 
@@ -19,6 +21,8 @@ public class Stream {
     // Max number of dObjs that will be held.
     private final static int MAX_LENGTH_OF_TOFIRE_LIST = 3;
     private final static long TIMEOUT_IN_MILLISECONDS = 15000;
+    
+    private Vidshare vs = null;
     
     private ConcurrentHashMap<Integer, String> chunks;
     private ArrayList<String> tags;
@@ -41,7 +45,7 @@ public class Stream {
     private Integer lastFiredNumber = new Integer(com.gm375.vidshare.util.Counter.INITIAL_NUMBER - 1);
     
     
-    Stream(DataObject dObj) {
+    Stream(DataObject dObj, Vidshare vs) {
         Log.d(Vidshare.LOG_TAG, "*** Stream constructor *** creating stream ***");
         chunks = new ConcurrentHashMap<Integer, String>();
         id = dObj.getAttribute("id", 0).getValue();
@@ -73,6 +77,8 @@ public class Stream {
         dObj.getThumbnail(data);
         thumbnail = BitmapFactory.decodeByteArray(data, 0, size);
         */
+        
+        this.vs = vs;
         
         addDataObject(dObj);
         
@@ -113,14 +119,14 @@ public class Stream {
             
             expected.remove(seqNumber);
             if (isBeingViewed) {
-                // TODO: Fire object no. seqNumber
+                fireDataObject(seqNumber, filepath);
             }
             int current = seqNumber;
             for (Iterator<Integer> it = toFire.iterator(); it.hasNext(); ) {
                 Integer toFireNumber = it.next();
                 if (toFireNumber == (current + 1)) {
                     if (isBeingViewed) {
-                        // TODO: Fire object no. toFireNumber
+                        fireDataObject(toFireNumber, chunks.get(toFireNumber));
                     }
                     it.remove();
                     current++;
@@ -148,7 +154,7 @@ public class Stream {
                 Integer firstDObj = toFire.first();
                 toFire.remove(firstDObj);
                 if (isBeingViewed) {
-                    // TODO: Fire object no. firstDObj
+                    fireDataObject(firstDObj, chunks.get(firstDObj));
                 }
                 
                 int current = firstDObj;
@@ -156,7 +162,7 @@ public class Stream {
                     Integer toFireNumber = it.next();
                     if (toFireNumber == (current + 1)) {
                         if (isBeingViewed) {
-                            // TODO: Fire object no. toFireNumber
+                            fireDataObject(toFireNumber, chunks.get(toFireNumber));
                         }
                         it.remove();
                         current++;
@@ -179,6 +185,30 @@ public class Stream {
         
     }
     
+    private void fireDataObject(Integer seqNumber, String filepath) {
+        StreamViewer streamViewer = vs.getStreamViewer();
+        if (streamViewer == null) {
+            Log.e(Vidshare.LOG_TAG, "***!!! stream viewer was NULL when OBJECT was fired !!!***");
+            Log.e(Vidshare.LOG_TAG, "***!!! This really shouldn't happen. !!!***");
+            return;
+        }
+        DataObjectEvent doe = new DataObjectEvent(this,
+                DataObjectEvent.EVENT_TYPE_NEW_DATA_OBJECT, seqNumber, filepath);
+        streamViewer.dataObjectAlert(doe);
+    }
+    
+    private void fireTimeout() {
+        StreamViewer streamViewer = vs.getStreamViewer();
+        if (streamViewer == null) {
+            Log.e(Vidshare.LOG_TAG, "***!!! stream viewer was NULL when TIMEOUT was fired !!!***");
+            Log.e(Vidshare.LOG_TAG, "***!!! This really shouldn't happen. !!!***");
+            return;
+        }
+        DataObjectEvent doe = new DataObjectEvent(this,
+                DataObjectEvent.EVENT_TYPE_TIMEOUT_REACHED);
+        streamViewer.dataObjectAlert(doe);
+    }
+    
     public String[] getTags() {
         return (String[]) tags.toArray();
     }
@@ -199,7 +229,7 @@ public class Stream {
         return thumbnail;
     }
     
-    public boolean getBeingViewed() {
+    public boolean isBeingViewed() {
         return isBeingViewed;
     }
     
@@ -207,7 +237,7 @@ public class Stream {
         return streamEnded;
     }
     
-    public void setBeingViewed(boolean b) {
+    public void setIsBeingViewed(boolean b) {
         isBeingViewed = b;
     }
     
@@ -229,7 +259,7 @@ public class Stream {
     private class TimeoutTask extends TimerTask {
         @Override
         public void run() {
-            // TODO: Fire off a message that a timeout has been reached. Cancel stream.
+            fireTimeout();
         }
     }
 }
