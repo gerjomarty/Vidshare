@@ -2,6 +2,7 @@ package com.gm375.vidshare;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -14,6 +15,10 @@ import android.graphics.BitmapFactory;
 import android.util.Log;
 
 public class Stream {
+    
+    // Max number of dObjs that will be held.
+    private final static int MAX_LENGTH_OF_TOFIRE_LIST = 3;
+    
     private ConcurrentHashMap<Integer, String> chunks;
     private ArrayList<String> tags;
     private String id;
@@ -27,8 +32,8 @@ public class Stream {
     private boolean streamEnded = false;
     
     // These vars used for the sequenceChunks() algorithm.
-    private Set<Integer> expected = new HashSet<Integer>();
-    private Set<Integer> toFire = new TreeSet<Integer>();
+    private HashSet<Integer> expected = new HashSet<Integer>();
+    private TreeSet<Integer> toFire = new TreeSet<Integer>();
     private Integer lastFiredNumber = new Integer(com.gm375.vidshare.util.Counter.INITIAL_NUMBER - 1);
     
     
@@ -100,12 +105,13 @@ public class Stream {
                 // TODO: Fire object no. seqNumber
             }
             int current = seqNumber;
-            for (Integer toFireNumber : toFire) {
+            for (Iterator<Integer> it = toFire.iterator(); it.hasNext(); ) {
+                Integer toFireNumber = it.next();
                 if (toFireNumber == (current + 1)) {
                     if (isBeingViewed) {
                         // TODO: Fire object no. toFireNumber
                     }
-                    toFire.remove(toFireNumber);
+                    it.remove();
                     current++;
                 } else {
                     break;
@@ -124,8 +130,40 @@ public class Stream {
                 }
             }
             
+            // If toFire list gets too big, video will get behind broadcast too much.
+            // Therefore, keep toFire list small.
+            
+            while (toFire.size() > MAX_LENGTH_OF_TOFIRE_LIST) {
+                Integer firstDObj = toFire.first();
+                toFire.remove(firstDObj);
+                if (isBeingViewed) {
+                    // TODO: Fire object no. firstDObj
+                }
+                
+                int current = firstDObj;
+                for (Iterator<Integer> it = toFire.iterator(); it.hasNext(); ) {
+                    Integer toFireNumber = it.next();
+                    if (toFireNumber == (current + 1)) {
+                        if (isBeingViewed) {
+                            // TODO: Fire object no. toFireNumber
+                        }
+                        it.remove();
+                        current++;
+                    } else {
+                        break;
+                    }
+                }
+                lastFiredNumber = current;
+                
+            }
+            
         } else {
-            Log.e(Vidshare.LOG_TAG, "***!!! We really should never be in this situation. !!!***");
+            // seqNumber < (lastFiredNumber + 1)
+            // We can get into the situation where we receive sequence numbers less
+            // than the last fired number when the toFire list gets too big and we
+            // send some later ones, only to receive the earlier ones after this.
+            // In this case, we can only drop the packet and continue.
+            expected.remove(seqNumber);
         }
         
     }
