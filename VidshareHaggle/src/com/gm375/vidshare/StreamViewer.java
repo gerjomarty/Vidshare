@@ -2,6 +2,7 @@ package com.gm375.vidshare;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.widget.VideoView;
 
 import com.gm375.vidshare.listenerstuff.DataObjectEvent;
 import com.gm375.vidshare.listenerstuff.DataObjectListener;
@@ -9,6 +10,7 @@ import com.gm375.vidshare.listenerstuff.DataObjectListener;
 public class StreamViewer extends Activity implements DataObjectListener {
     
     private Vidshare vs = null;
+    private VideoView video;
     
     /** Called when the activity is first created. */
     @Override
@@ -17,6 +19,8 @@ public class StreamViewer extends Activity implements DataObjectListener {
         
         vs = (Vidshare) getApplication();
         vs.setStreamViewer(this);
+        
+        video = (VideoView) findViewById(R.id.stream_viewer_surface);
     }
     
     public void onStop() {
