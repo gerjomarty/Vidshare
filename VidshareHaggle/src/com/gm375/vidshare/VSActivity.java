@@ -43,6 +43,8 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
     public static final int SPAWN_DAEMON_FAILED_DIALOG = 2;
     public static final int PICTURE_ATTRIBUTES_DIALOG = 3;
     
+    public static final String STREAM_ID_KEY = "streamid";
+    
     //ListView mListView = null;
     //ArrayAdapter<String> mArrayAdapter = null;
     
