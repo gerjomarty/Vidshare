@@ -326,6 +326,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
                         }
                         dObj.addAttribute("seqNumber", String.valueOf(seqNumber), 1);
                         dObj.addAttribute("id", androidId+startTime, 1);
+                        dObj.addAttribute("isLast", "false", 1);
                         /*
                         while (!isFinishedTakingThumbnail) {
                             // Busy wait.

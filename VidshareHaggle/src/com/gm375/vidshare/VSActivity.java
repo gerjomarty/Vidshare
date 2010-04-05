@@ -101,7 +101,11 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position,
                 long id) {
-            String mapKey = ((Stream) parent.getItemAtPosition(position)).getId();
+            Object obj = parent.getItemAtPosition(position);
+            if (obj == null) {
+                return;
+            }
+            String mapKey = (String) obj;
             Intent i = new Intent();
             i.setClass(getApplicationContext(), StreamViewer.class);
             i.putExtra(STREAM_ID_KEY, mapKey);
@@ -377,6 +381,10 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
 
         @Override
         public Object getItem(int position) {
+            if (mStreamMap == null || mStreamMap.size() == 0) {
+                Log.d(Vidshare.LOG_TAG, "*** StreamAdapter: getItem("+ position +") = NULL ***");
+                return null;
+            }
             Object obj = mStreamMap.keySet().toArray()[position];
             Log.d(Vidshare.LOG_TAG, "*** StreamAdapter: getItem("+ position +") = "+ obj +" ***");
             return obj;

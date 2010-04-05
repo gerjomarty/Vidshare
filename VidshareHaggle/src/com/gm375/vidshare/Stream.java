@@ -25,7 +25,7 @@ public class Stream {
     private Vidshare vs = null;
     
     private ConcurrentHashMap<Integer, String> chunks;
-    private ArrayList<String> tags;
+    private String[] tags;
     private String id;
     private String androidId;
     private String startTime;
@@ -62,12 +62,19 @@ public class Stream {
         
         startTimeLong = Long.parseLong(startTime);
         
-        tags = new ArrayList<String>();
         Attribute[] attributes = dObj.getAttributes().clone();
         
+        int arrayLength = 0;
         for (Attribute attr : attributes) {
             if (attr.getName() == "tag") {
-                tags.add(attr.getValue());
+                arrayLength++;
+            }
+        }
+        tags = new String[arrayLength];
+        int i = 0;
+        for (Attribute attr : attributes) {
+            if (attr.getName() == "tag") {
+                tags[i++] = attr.getValue();
             }
         }
         
@@ -80,10 +87,10 @@ public class Stream {
         
         this.vs = vs;
         
-        addDataObject(dObj);
-        
         timeoutTimer = new Timer(true);
         timeoutTask = new TimeoutTask();
+        
+        addDataObject(dObj);
     }
     
     public void addDataObject(DataObject dObj) {
@@ -91,7 +98,7 @@ public class Stream {
         Integer seqNumber = Integer.decode(dObj.getAttribute("seqNumber", 0).getValue());
         String filepath = dObj.getFilePath();
         
-        if (dObj.getAttribute("isLast", 0).getValue() != null) {
+        if (dObj.getAttribute("isLast", 0).getValue() == "true") {
             streamEnding = true;
         }
         
@@ -223,7 +230,7 @@ public class Stream {
     }
     
     public String[] getTags() {
-        return (String[]) tags.toArray();
+        return tags;
     }
     
     public String getId() {
