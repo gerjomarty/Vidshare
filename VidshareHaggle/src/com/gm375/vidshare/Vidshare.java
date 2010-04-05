@@ -27,6 +27,7 @@ public class Vidshare extends Application implements org.haggle.EventHandler {
     public static final int ADD_STREAM_ATTRIBUTES_REQUEST = 10;
     public static final int STREAM_VIDEO_REQUEST = 11;
     public static final int ADD_INTEREST_REQUEST = 12;
+    public static final int WATCH_STREAM_REQUEST = 20;
     
     
     private VSActivity act = null;

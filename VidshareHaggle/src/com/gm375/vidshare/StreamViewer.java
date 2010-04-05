@@ -90,6 +90,11 @@ public class StreamViewer extends Activity implements DataObjectListener,
             newDataObject(dObjEvent.getseqNumber(), dObjEvent.getFilepath());
             break;
             
+        case DataObjectEvent.EVENT_TYPE_STREAM_ENDED:
+            setResult(Activity.RESULT_OK);
+            finish();
+            break;
+            
         }
         
     }

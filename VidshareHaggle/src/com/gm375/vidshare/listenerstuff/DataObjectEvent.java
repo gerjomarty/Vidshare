@@ -6,6 +6,7 @@ public class DataObjectEvent extends EventObject {
     
     public static final int EVENT_TYPE_NEW_DATA_OBJECT = 0;
     public static final int EVENT_TYPE_TIMEOUT_REACHED = -1;
+    public static final int EVENT_TYPE_STREAM_ENDED = -2;
     
     private Integer eventType;
     private Integer seqNumber;

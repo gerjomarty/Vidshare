@@ -104,6 +104,7 @@ public class Stream {
                 sequenceChunks(seqNumber, filepath);
             } else {
                 streamEnded = true;
+                fireStreamEnded();
             }
         }
         
@@ -209,8 +210,24 @@ public class Stream {
         streamViewer.dataObjectAlert(doe);
     }
     
+    private void fireStreamEnded() {
+        StreamViewer streamViewer = vs.getStreamViewer();
+        if (streamViewer == null) {
+            Log.e(Vidshare.LOG_TAG, "***!!! stream viewer was NULL when TIMEOUT was fired !!!***");
+            Log.e(Vidshare.LOG_TAG, "***!!! This really shouldn't happen. !!!***");
+            return;
+        }
+        DataObjectEvent doe = new DataObjectEvent(this,
+                DataObjectEvent.EVENT_TYPE_STREAM_ENDED);
+        streamViewer.dataObjectAlert(doe);
+    }
+    
     public String[] getTags() {
         return (String[]) tags.toArray();
+    }
+    
+    public String getId() {
+        return id;
     }
     
     public String getAndroidId() {

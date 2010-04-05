@@ -25,6 +25,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
@@ -43,7 +44,7 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
     public static final int SPAWN_DAEMON_FAILED_DIALOG = 2;
     public static final int PICTURE_ATTRIBUTES_DIALOG = 3;
     
-    public static final String STREAM_ID_KEY = "streamid";
+    public static final String STREAM_ID_KEY = "com.gm375.vidshare.streamId";
     
     //ListView mListView = null;
     //ArrayAdapter<String> mArrayAdapter = null;
@@ -70,6 +71,8 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
         streamAdpt = new StreamAdapter(this);
         streamList.setAdapter(streamAdpt);
         
+        streamList.setOnItemClickListener(mOnStreamClicked);
+        
         //neighListHeader = (TextView) findViewById(R.id.list_header);
         
         ListView neighList = (ListView) findViewById(R.id.neighbor_list);
@@ -92,6 +95,19 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
         setDefaultTab(0);
         
     }
+    
+    private AdapterView.OnItemClickListener mOnStreamClicked =
+            new AdapterView.OnItemClickListener() {
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position,
+                long id) {
+            String mapKey = ((Stream) parent.getItemAtPosition(position)).getId();
+            Intent i = new Intent();
+            i.setClass(getApplicationContext(), StreamViewer.class);
+            i.putExtra(STREAM_ID_KEY, mapKey);
+            startActivityForResult(i, Vidshare.WATCH_STREAM_REQUEST);
+        }
+    };
     
     
     @Override
@@ -303,6 +319,8 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
                 vs.getHaggleHandle().unregisterInterests(aa);
             }
             
+        } else if (requestCode == Vidshare.WATCH_STREAM_REQUEST) {
+            streamAdpt.refresh();
         } else {
             Log.d(Vidshare.LOG_TAG, "***Unknown activity result***");
         }
