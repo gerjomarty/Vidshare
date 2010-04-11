@@ -66,14 +66,14 @@ public class Stream {
         
         int arrayLength = 0;
         for (Attribute attr : attributes) {
-            if (attr.getName() == "tag") {
+            if (attr.getName().contentEquals("tag")) {
                 arrayLength++;
             }
         }
         tags = new String[arrayLength];
         int i = 0;
         for (Attribute attr : attributes) {
-            if (attr.getName() == "tag") {
+            if (attr.getName().contentEquals("tag")) {
                 tags[i++] = attr.getValue();
             }
         }
@@ -98,12 +98,7 @@ public class Stream {
         Integer seqNumber = Integer.decode(dObj.getAttribute("seqNumber", 0).getValue());
         String filepath = dObj.getFilePath();
         
-        if (dObj.getAttribute("isLast", 0).getValue() == "true") {
-            streamEnding = true;
-        }
-        if (filepath == null) {
-            // Sentinel last object will be the only one (hopefully) to have
-            // a NULL filepath.
+        if (dObj.getAttribute("isLast", 0).getValue().contentEquals("true")) {
             streamEnding = true;
         }
         

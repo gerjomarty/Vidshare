@@ -208,7 +208,7 @@ public class Vidshare extends Application implements org.haggle.EventHandler {
         
         String isLast = dObj.getAttribute("isLast", 0).getValue();
         
-        if (isLast == "false") {
+        if (isLast.contentEquals("false")) {
             // CASE: Proper video packet, video still streaming.
             
             Log.d(Vidshare.LOG_TAG, "***Attempting to get file path***");
