@@ -328,8 +328,8 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
             boolean isStreamOver = data.getBooleanExtra(VSActivity.IS_STREAM_OVER_KEY, false);
             if (isStreamOver) {
                 String id = data.getStringExtra(VSActivity.STREAM_ID_KEY);
-                vs.mStreamAliveMap.put(id, false);
-                vs.mStreamMap.remove(id);
+                //vs.mStreamAliveMap.put(id, false);
+                //vs.mStreamMap.remove(id);
                 streamAdpt.refresh();
             }
         } else {

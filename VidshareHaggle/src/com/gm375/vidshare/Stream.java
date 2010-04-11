@@ -62,7 +62,7 @@ public class Stream {
         
         startTimeLong = Long.parseLong(startTime);
         
-        Attribute[] attributes = dObj.getAttributes().clone();
+        Attribute[] attributes = dObj.getAttributes();
         
         int arrayLength = 0;
         for (Attribute attr : attributes) {
@@ -225,6 +225,8 @@ public class Stream {
     }
     
     private void fireStreamEnded() {
+        vs.mStreamAliveMap.put(id, false);
+        vs.mStreamMap.remove(id);
         StreamViewer streamViewer = vs.getStreamViewer();
         if (streamViewer == null) {
             Log.e(Vidshare.LOG_TAG, "***!!! stream viewer was NULL when STREAM ENDED was fired !!!***");
