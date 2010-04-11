@@ -35,6 +35,7 @@ public class Vidshare extends Application implements org.haggle.EventHandler {
     private StreamViewer streamViewer = null;
     private org.haggle.Handle hh = null;
     ConcurrentHashMap<String, Stream> mStreamMap;
+    ConcurrentHashMap<String, Boolean> mStreamAliveMap;
     
     private int status = STATUS_OK;
     
@@ -51,6 +52,7 @@ public class Vidshare extends Application implements org.haggle.EventHandler {
         Log.d(Vidshare.LOG_TAG, "Vidshare: ***onCreate() Thread ID = "+ Thread.currentThread().getId() +" ***");
         
         mStreamMap = new ConcurrentHashMap<String, Stream>();
+        mStreamAliveMap = new ConcurrentHashMap<String, Boolean>();
         
         // TODO: Get vibrator here, when implementing.
         
@@ -204,8 +206,9 @@ public class Vidshare extends Application implements org.haggle.EventHandler {
             return;
         }
         
+        String isLast = dObj.getAttribute("isLast", 0).getValue();
         
-        if (dObj.getAttribute("isLast", 0).getValue() == "false") {
+        if (isLast == "false") {
             // CASE: Proper video packet, video still streaming.
             
             Log.d(Vidshare.LOG_TAG, "***Attempting to get file path***");

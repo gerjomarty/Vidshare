@@ -101,6 +101,11 @@ public class Stream {
         if (dObj.getAttribute("isLast", 0).getValue() == "true") {
             streamEnding = true;
         }
+        if (filepath == null) {
+            // Sentinel last object will be the only one (hopefully) to have
+            // a NULL filepath.
+            streamEnding = true;
+        }
         
         if (!streamEnding) {
             chunks.put(seqNumber, filepath);
@@ -116,8 +121,10 @@ public class Stream {
         }
         
         timeoutTask.cancel();
-        timeoutTask = new TimeoutTask();
-        timeoutTimer.schedule(timeoutTask, TIMEOUT_IN_MILLISECONDS);
+        if (!streamEnded) {
+            timeoutTask = new TimeoutTask();
+            timeoutTimer.schedule(timeoutTask, TIMEOUT_IN_MILLISECONDS);
+        }
         
     }
     
@@ -220,7 +227,7 @@ public class Stream {
     private void fireStreamEnded() {
         StreamViewer streamViewer = vs.getStreamViewer();
         if (streamViewer == null) {
-            Log.e(Vidshare.LOG_TAG, "***!!! stream viewer was NULL when TIMEOUT was fired !!!***");
+            Log.e(Vidshare.LOG_TAG, "***!!! stream viewer was NULL when STREAM ENDED was fired !!!***");
             Log.e(Vidshare.LOG_TAG, "***!!! This really shouldn't happen. !!!***");
             return;
         }

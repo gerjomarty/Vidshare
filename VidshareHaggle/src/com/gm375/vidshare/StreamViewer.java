@@ -4,6 +4,7 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
@@ -91,7 +92,10 @@ public class StreamViewer extends Activity implements DataObjectListener,
             break;
             
         case DataObjectEvent.EVENT_TYPE_STREAM_ENDED:
-            setResult(Activity.RESULT_OK);
+            Intent i = new Intent();
+            i.putExtra(VSActivity.IS_STREAM_OVER_KEY, true);
+            i.putExtra(VSActivity.STREAM_ID_KEY, currentStream.getId());
+            setResult(Activity.RESULT_OK, i);
             finish();
             break;
             

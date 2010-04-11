@@ -262,12 +262,18 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         mr.setVideoSource(MediaRecorder.VideoSource.CAMERA);
         //mr.setCamera(mCamera);
         mr.setAudioSource(MediaRecorder.AudioSource.MIC);
+        /*
         mr.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
         mr.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
         mr.setVideoEncoder(MediaRecorder.VideoEncoder.H263);
+        */
+        mr.setOutputFormat(MediaRecorder.OutputFormat.DEFAULT);
+        mr.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
+        mr.setVideoEncoder(MediaRecorder.VideoEncoder.DEFAULT);
+        
         mr.setOutputFile(filename);
-        mr.setVideoSize(mSavedWidth, mSavedHeight);
-        mr.setVideoFrameRate(VIDEO_FRAME_RATE);
+        //mr.setVideoSize(mSavedWidth, mSavedHeight);
+        //mr.setVideoFrameRate(VIDEO_FRAME_RATE);
         mr.setPreviewDisplay(mSurfaceHolder.getSurface());
         return mr;
     }
