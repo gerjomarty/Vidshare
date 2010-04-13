@@ -26,4 +26,12 @@ public class Counter {
         }
     }
     
+    public int peekNext() throws RuntimeException {
+        if (currentNo == MAXIMUM_NUMBER) {
+            throw new RuntimeException("Counter overflow.");
+        } else {
+            return currentNo + 1;
+        }
+    }
+    
 }

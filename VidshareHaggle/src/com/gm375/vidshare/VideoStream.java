@@ -1,7 +1,13 @@
 package com.gm375.vidshare;
 
 import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import org.haggle.DataObject;
 import org.haggle.DataObject.DataObjectException;
@@ -22,7 +28,7 @@ import android.widget.ImageView;
 
 import com.gm375.vidshare.util.Counter;
 
-public class VideoStream extends Activity implements View.OnClickListener, SurfaceHolder.Callback {
+public class VideoStream extends Activity implements View.OnClickListener, SurfaceHolder.Callback, Camera.ErrorCallback {
     
     private boolean mIsPreviewing = false;
     private VideoPreview mVideoPreview;
@@ -39,8 +45,12 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     private long startTime;
     private String androidId;
     
-    private JpegPictureCallback mJpegCallback = new JpegPictureCallback();
-    private byte[] thumbnailData;
+    private volatile int currentListIndex;
+    private List<MediaRecorder> mrList;
+    private List<String> filepathList;
+    private List<Integer> seqNumberList;
+    
+    private ArrayList<DataObject> sentDObjs;
     
     int mLastOrientation = OrientationEventListener.ORIENTATION_UNKNOWN;
     
@@ -54,7 +64,6 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     
     private volatile int mStatus = STATUS_IDLE;
     private volatile boolean isFinishedTakingThumbnail = false;
-    private int seqNumber;
     
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -93,12 +102,21 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         
         attributes = getIntent().getStringArrayExtra("attributes");
         
+        sentDObjs = new ArrayList<DataObject>();
+        
+        currentListIndex = 1;
+        mrList = Collections.synchronizedList(new ArrayList<MediaRecorder>(2));
+        mrList.add(0, new MediaRecorder());
+        mrList.add(1, new MediaRecorder());
+        filepathList = Collections.synchronizedList(new ArrayList<String>(2));
+        filepathList.add(0, null);
+        filepathList.add(1, null);
+        seqNumberList = Collections.synchronizedList(new ArrayList<Integer>(2));
+        seqNumberList.add(0, null);
+        seqNumberList.add(1, null);
+        
         startTime = System.currentTimeMillis();
         
-        /*
-        WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-         */
         androidId = android.provider.Settings.Secure.getString(getContentResolver(), 
                 android.provider.Settings.Secure.ANDROID_ID);
         
@@ -110,13 +128,14 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         Log.d(Vidshare.LOG_TAG, "*** VideoStream *** onStart() ***");
         
         makeSureCameraIsOpen();
+        //mCamera.setErrorCallback(this);
     }
     
     public void onStop() {
         super.onStop();
         Log.d(Vidshare.LOG_TAG, "*** VideoStream *** onStop() ***");
         
-        closeCamera();
+        //closeCamera();
         vs.setVideoStream(null);
     }
 
@@ -166,7 +185,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         stopPreview();
         mSurfaceHolder = null;
     }
-    
+    /*
     private final class JpegPictureCallback implements PictureCallback {
 
         @Override
@@ -177,7 +196,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         }
         
     }
-    
+    */
     public void startPreview(int w, int h, boolean start) {
         Log.d(Vidshare.LOG_TAG, "*** VideoStream *** startPreview() ***");
         mVideoPreview.setVisibility(View.VISIBLE);
@@ -256,26 +275,68 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         return retVal;
     }
     
-    public MediaRecorder createMediaRecorder(String filename) {
+    public MediaRecorder createMediaRecorder(String filepath) {
         Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Creating media recorder ***");
         MediaRecorder mr = new MediaRecorder();
-        mr.setVideoSource(MediaRecorder.VideoSource.CAMERA);
         //mr.setCamera(mCamera);
+        mr.setVideoSource(MediaRecorder.VideoSource.CAMERA);
         mr.setAudioSource(MediaRecorder.AudioSource.MIC);
-        /*
+        
         mr.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
         mr.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
         mr.setVideoEncoder(MediaRecorder.VideoEncoder.H263);
-        */
+        
+        /*
         mr.setOutputFormat(MediaRecorder.OutputFormat.DEFAULT);
         mr.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
         mr.setVideoEncoder(MediaRecorder.VideoEncoder.DEFAULT);
-        
-        mr.setOutputFile(filename);
+        */
+        mr.setOutputFile(filepath);
         //mr.setVideoSize(mSavedWidth, mSavedHeight);
-        //mr.setVideoFrameRate(VIDEO_FRAME_RATE);
+        mr.setVideoFrameRate(VIDEO_FRAME_RATE);
         mr.setPreviewDisplay(mSurfaceHolder.getSurface());
+        
+        
         return mr;
+    }
+    
+    private void setUpNextRecording() {
+        int nextListIndex = currentListIndex ^ 1;
+        MediaRecorder mr = mrList.get(nextListIndex);
+        mr.reset();
+        int nextSeqNumber = mCounter.getNext();
+        String nextFilepath =
+            new File("/sdcard/Vidshare/vs_"+startTime+"_"+nextSeqNumber+".3gp").getPath();
+        seqNumberList.set(nextListIndex, nextSeqNumber);
+        filepathList.set(nextListIndex, nextFilepath);
+        mr.setVideoSource(MediaRecorder.VideoSource.CAMERA);
+        mr.setAudioSource(MediaRecorder.AudioSource.MIC);
+        mr.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+        mr.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+        mr.setVideoEncoder(MediaRecorder.VideoEncoder.H263);
+        mr.setVideoFrameRate(VIDEO_FRAME_RATE);
+        mr.setPreviewDisplay(mSurfaceHolder.getSurface());
+        mr.setOutputFile(nextFilepath);
+    }
+    
+    private void recordPart() {
+        MediaRecorder mr = mrList.get(currentListIndex);
+        try {
+            mr.prepare();
+            mr.start();
+            Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Sleeping for "+ MILLISECONDS_PER_CHUNK +" ms ***");
+            Thread.sleep(MILLISECONDS_PER_CHUNK);
+            mr.stop();
+        } catch (IllegalStateException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
     
     private void makeSureCameraIsOpen() {
@@ -292,9 +353,11 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     
     private void startStreamingVideo() {
         Log.d(Vidshare.LOG_TAG, "*** VideoStream *** startStreamingVideo() ***");
+        Thread prepareNextRecordingThread = null;
         Thread publishDObjThread = null;
         
         //stopPreview();
+        closeCamera();
         
         // Take photo for thumbnail image.
         /*
@@ -309,28 +372,53 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         
         mCamera.setParameters(oldParams);
         */
-        closeCamera();
-        // TODO: See if we can remove this closeCamera() call without things breaking.
+        
+        // Do the initial setup for the first MediaRecorder here, then can do in
+        // in thread for all subsequent times.
+        
+        // These two commands set up MediaRecorder index 0, and then
+        // set the List Index to 0.
+        setUpNextRecording();
+        currentListIndex ^= 1;
         
         mStatus = STATUS_STREAMING_VIDEO;
         
         while (mStatus == STATUS_STREAMING_VIDEO) {
-            final int seqNumber = mCounter.getNext();
-            final String filepath = recordChunk(seqNumber);
-            Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Streaming sequence "+ seqNumber +" with filepath "+ filepath +" ***");
+            final int currSeqNumber = seqNumberList.get(currentListIndex);
+            final String currFilepath = filepathList.get(currentListIndex);
+            
+            prepareNextRecordingThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    setUpNextRecording();
+                }
+            });
+            
+            prepareNextRecordingThread.start();
+            recordPart();
+            try {
+                prepareNextRecordingThread.join();
+                currentListIndex ^= 1;
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                Log.d(Vidshare.LOG_TAG, "*** VideoStream *** prepareNextRecording interrupted. ***");
+                e.printStackTrace();
+                return;
+            }
             
             publishDObjThread = new Thread(new Runnable() {
                 @Override
                 public void run() {
                     try {
-                        DataObject dObj = new DataObject(filepath);
+                        Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Streaming sequence "+ currSeqNumber +" with filepath "+ currFilepath +" ***");
+                        DataObject dObj = new DataObject(currFilepath);
                         synchronized(attributes) {
                             for (int i = 0; i < attributes.length; i++) {
                                 dObj.addAttribute("tag", attributes[i], 1);
-                                Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Attribue added: "+ attributes[i] +" ***");
+                                Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Attribute added: "+ attributes[i] +" ***");
                             }
                         }
-                        dObj.addAttribute("seqNumber", String.valueOf(seqNumber), 1);
+                        dObj.addAttribute("seqNumber", String.valueOf(currSeqNumber), 1);
                         dObj.addAttribute("id", androidId+startTime, 1);
                         dObj.addAttribute("isLast", "false", 1);
                         /*
@@ -350,9 +438,10 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
                                 Log.e(Vidshare.LOG_TAG, "***!!! Data Object returned error code. !!!***");
                             }
                             Log.d(Vidshare.LOG_TAG, "*** Publish return code: "+ ret +" ***");
+                            sentDObjs.add(dObj);
                         }
                     } catch (DataObjectException e) {
-                        Log.d(Vidshare.LOG_TAG, "*** VideoStream *** DataObjectException for sequence "+ seqNumber +" ***");
+                        Log.d(Vidshare.LOG_TAG, "*** VideoStream *** DataObjectException for sequence "+ currSeqNumber +" ***");
                         // TODO Auto-generated catch block
                         e.printStackTrace();
                     }
@@ -375,7 +464,8 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
                         dObj.addAttribute("tag", attributes[i], 1);
                     }                
                 }
-                dObj.addAttribute("seqNumber", String.valueOf(mCounter.getNext()), 1);
+                int finalSeqNumber = seqNumberList.get(currentListIndex);
+                dObj.addAttribute("seqNumber", String.valueOf(finalSeqNumber), 1);
                 dObj.addAttribute("id", androidId+startTime, 1);
                 dObj.addAttribute("isLast", "true", 1);
                 dObj.addHash();
@@ -388,6 +478,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
                         Log.e(Vidshare.LOG_TAG, "***!!! Data Object returned error code. !!!***");
                     }
                     Log.d(Vidshare.LOG_TAG, "*** Last object published return code: "+ ret +" ***");
+                    sentDObjs.add(dObj);
                 }
             } catch (DataObjectException e) {
                 Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Data Object Exception ***");
@@ -408,7 +499,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         }
         
     }
-    
+
     private String recordChunk(int seqNumber) {
         String filepath = null;
         try {
@@ -418,11 +509,13 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
             // TODO: possible bug here with possible file name clashes.
             filepath = chunkFile.getPath();
             mMediaRecorder = createMediaRecorder(filepath);
+            //mMediaRecorder.setCamera(mCamera);
             mMediaRecorder.prepare();
             mMediaRecorder.start();
             Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Sleeping for "+ MILLISECONDS_PER_CHUNK +" ms ***");
             Thread.sleep(MILLISECONDS_PER_CHUNK);
             mMediaRecorder.stop();
+            mMediaRecorder.release();
         } catch (Exception e) {
             Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Exception in recordChunk() ***");
             // TODO Auto-generated catch block
@@ -450,6 +543,18 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
                 wait();
             }
             Log.d(Vidshare.LOG_TAG, "*** VideoStream *** wait() over ***");
+            
+            Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Deleting data objects from Haggle ***");
+            for (DataObject dObj : sentDObjs) {
+                synchronized(vs) {
+                    int ret = vs.getHaggleHandle().deleteDataObject(dObj);
+                    if (ret == -1) {
+                        Log.e(Vidshare.LOG_TAG, "***!!! Data Object deletion returned error code. !!!***");
+                    }
+                    Log.d(Vidshare.LOG_TAG, "*** Last object delete return code: "+ ret +" ***");
+                }
+            }
+            
             setResult(Activity.RESULT_OK);
             finish();
         } catch (InterruptedException e) {
@@ -472,6 +577,11 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
             break;
         }
         return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    public void onError(int error, Camera camera) {
+        Log.e(Vidshare.LOG_TAG, "***!!!  VideoStream  ***  Error code: "+ error +"  !!!***");
     }
 
 }
