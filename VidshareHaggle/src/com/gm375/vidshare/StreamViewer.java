@@ -9,8 +9,10 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.SurfaceHolder;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ImageView;
 import android.widget.Toast;
 import android.widget.VideoView;
 
@@ -23,6 +25,7 @@ public class StreamViewer extends Activity implements DataObjectListener,
     
     private Vidshare vs = null;
     private VideoView mVideoView;
+    private ImageView mLoadingScreen;
     private Stream currentStream = null;
     
     private ConcurrentLinkedQueue<String> dObjFilepaths = null;
@@ -43,6 +46,7 @@ public class StreamViewer extends Activity implements DataObjectListener,
         dObjFilepaths = new ConcurrentLinkedQueue<String>();
         
         mVideoView = (VideoView) findViewById(R.id.stream_viewer_surface);
+        mLoadingScreen = (ImageView) findViewById(R.id.loading_screen);
         
         mVideoView.setOnCompletionListener(this);
         mVideoView.setOnErrorListener(this);
@@ -109,6 +113,9 @@ public class StreamViewer extends Activity implements DataObjectListener,
     
     private void newDataObject(Integer seqNumber, String filepath) {
         if (!mVideoView.isPlaying()) {
+            if (mLoadingScreen.isShown()) {
+                mLoadingScreen.setVisibility(View.GONE);
+            }
             mVideoView.setVideoPath(filepath);
             mVideoView.start();
         } else {
@@ -144,7 +151,7 @@ public class StreamViewer extends Activity implements DataObjectListener,
     @Override
     public void onCompletion(MediaPlayer mp) {
         if (dObjFilepaths.isEmpty()) {
-            // TODO: Need to wait for more data objects
+            mLoadingScreen.setVisibility(View.VISIBLE);
         } else {
             mVideoView.setVideoPath(dObjFilepaths.poll());
             mVideoView.start();
