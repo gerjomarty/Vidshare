@@ -275,31 +275,6 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         return retVal;
     }
     
-    public MediaRecorder createMediaRecorder(String filepath) {
-        Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Creating media recorder ***");
-        MediaRecorder mr = new MediaRecorder();
-        //mr.setCamera(mCamera);
-        mr.setVideoSource(MediaRecorder.VideoSource.CAMERA);
-        mr.setAudioSource(MediaRecorder.AudioSource.MIC);
-        
-        mr.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-        mr.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-        mr.setVideoEncoder(MediaRecorder.VideoEncoder.H263);
-        
-        /*
-        mr.setOutputFormat(MediaRecorder.OutputFormat.DEFAULT);
-        mr.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
-        mr.setVideoEncoder(MediaRecorder.VideoEncoder.DEFAULT);
-        */
-        mr.setOutputFile(filepath);
-        //mr.setVideoSize(mSavedWidth, mSavedHeight);
-        mr.setVideoFrameRate(VIDEO_FRAME_RATE);
-        mr.setPreviewDisplay(mSurfaceHolder.getSurface());
-        
-        
-        return mr;
-    }
-    
     private void setUpNextRecording() {
         int nextListIndex = currentListIndex ^ 1;
         MediaRecorder mr = mrList.get(nextListIndex);
@@ -498,30 +473,6 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
             e.printStackTrace();
         }
         
-    }
-
-    private String recordChunk(int seqNumber) {
-        String filepath = null;
-        try {
-            // TODO: dir.mkdirs() etc. to ensure location exists before trying to make file.
-            File chunkFile = new File("/sdcard/Vidshare/vs_"+ startTime +"_"+ seqNumber +".3gp");
-            Log.d(Vidshare.LOG_TAG, "*** VideoStream *** file created ***");
-            // TODO: possible bug here with possible file name clashes.
-            filepath = chunkFile.getPath();
-            mMediaRecorder = createMediaRecorder(filepath);
-            //mMediaRecorder.setCamera(mCamera);
-            mMediaRecorder.prepare();
-            mMediaRecorder.start();
-            Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Sleeping for "+ MILLISECONDS_PER_CHUNK +" ms ***");
-            Thread.sleep(MILLISECONDS_PER_CHUNK);
-            mMediaRecorder.stop();
-            mMediaRecorder.release();
-        } catch (Exception e) {
-            Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Exception in recordChunk() ***");
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        return filepath;
     }
     
     private void stopStreamingVideo() {

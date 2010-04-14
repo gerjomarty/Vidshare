@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Toast;
 import android.widget.VideoView;
 
 import com.gm375.vidshare.listenerstuff.DataObjectEvent;
@@ -84,7 +85,10 @@ public class StreamViewer extends Activity implements DataObjectListener,
         switch(dObjEvent.getEventType()) {
         
         case DataObjectEvent.EVENT_TYPE_TIMEOUT_REACHED:
-            // TODO: Timeout case: display timed out error, then quit back to main activity.
+            Toast.makeText(getApplicationContext(),
+                    "There was a problem with the stream. It timed out.",
+                    Toast.LENGTH_LONG).show();
+            finish();
             break;
             
         case DataObjectEvent.EVENT_TYPE_NEW_DATA_OBJECT:
