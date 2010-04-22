@@ -23,11 +23,11 @@
                 android:id="@+id/neighbor_list"
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent" />
-            <TextView 
-                android:id="@+id/textview3"
+            <ListView
+                android:id="@+id/settings_list"
                 android:layout_width="fill_parent"
-                android:layout_height="fill_parent" 
-                android:text="Settings" />
+                android:layout_height="fill_parent" />
+                
         </FrameLayout>
     </LinearLayout>
 </TabHost>

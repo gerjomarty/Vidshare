@@ -1,6 +1,5 @@
 package com.gm375.vidshare;
 
-import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import android.app.Activity;
@@ -20,8 +19,7 @@ import com.gm375.vidshare.listenerstuff.DataObjectEvent;
 import com.gm375.vidshare.listenerstuff.DataObjectListener;
 
 public class StreamViewer extends Activity implements DataObjectListener,
-            SurfaceHolder.Callback, MediaPlayer.OnCompletionListener, 
-            MediaPlayer.OnErrorListener, MediaPlayer.OnPreparedListener {
+            SurfaceHolder.Callback, MediaPlayer.OnCompletionListener {
     
     private Vidshare vs = null;
     private VideoView mVideoView;
@@ -49,8 +47,6 @@ public class StreamViewer extends Activity implements DataObjectListener,
         mLoadingScreen = (ImageView) findViewById(R.id.loading_screen);
         
         mVideoView.setOnCompletionListener(this);
-        mVideoView.setOnErrorListener(this);
-        mVideoView.setOnPreparedListener(this);
         
         SurfaceHolder holder = mVideoView.getHolder();
         holder.addCallback(this);
@@ -156,18 +152,6 @@ public class StreamViewer extends Activity implements DataObjectListener,
             mVideoView.setVideoPath(dObjFilepaths.poll());
             mVideoView.start();
         }
-    }
-
-    @Override
-    public boolean onError(MediaPlayer mp, int what, int extra) {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    @Override
-    public void onPrepared(MediaPlayer mp) {
-        // TODO Auto-generated method stub
-        
     }
     
 }

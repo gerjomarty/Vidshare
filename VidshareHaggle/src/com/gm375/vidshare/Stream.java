@@ -1,6 +1,5 @@
 package com.gm375.vidshare;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Timer;
@@ -11,16 +10,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.haggle.Attribute;
 import org.haggle.DataObject;
 
-import com.gm375.vidshare.listenerstuff.DataObjectEvent;
-
 import android.graphics.Bitmap;
 import android.util.Log;
+
+import com.gm375.vidshare.listenerstuff.DataObjectEvent;
 
 public class Stream {
     
     // Max number of dObjs that will be held.
     private final static int MAX_LENGTH_OF_TOFIRE_LIST = 3;
-    private final static long TIMEOUT_IN_MILLISECONDS = 15000;
+    private final static long TIMEOUT_IN_MILLISECONDS = 15000L;
     
     private Vidshare vs = null;
     
@@ -202,9 +201,11 @@ public class Stream {
             Log.e(Vidshare.LOG_TAG, "***!!! This really shouldn't happen. !!!***");
             return;
         }
-        DataObjectEvent doe = new DataObjectEvent(this,
-                DataObjectEvent.EVENT_TYPE_NEW_DATA_OBJECT, seqNumber, filepath);
-        streamViewer.dataObjectAlert(doe);
+        if (isBeingViewed()) {
+            DataObjectEvent doe = new DataObjectEvent(this,
+                    DataObjectEvent.EVENT_TYPE_NEW_DATA_OBJECT, seqNumber, filepath);
+            streamViewer.dataObjectAlert(doe);
+        }
     }
     
     private void fireTimeout() {
@@ -214,9 +215,11 @@ public class Stream {
             Log.e(Vidshare.LOG_TAG, "***!!! This really shouldn't happen. !!!***");
             return;
         }
-        DataObjectEvent doe = new DataObjectEvent(this,
-                DataObjectEvent.EVENT_TYPE_TIMEOUT_REACHED);
-        streamViewer.dataObjectAlert(doe);
+        if (isBeingViewed()) {
+            DataObjectEvent doe = new DataObjectEvent(this,
+                    DataObjectEvent.EVENT_TYPE_TIMEOUT_REACHED);
+            streamViewer.dataObjectAlert(doe);
+        }
     }
     
     private void fireStreamEnded() {
@@ -228,9 +231,11 @@ public class Stream {
             Log.e(Vidshare.LOG_TAG, "***!!! This really shouldn't happen. !!!***");
             return;
         }
-        DataObjectEvent doe = new DataObjectEvent(this,
-                DataObjectEvent.EVENT_TYPE_STREAM_ENDED);
-        streamViewer.dataObjectAlert(doe);
+        if (isBeingViewed()) {
+            DataObjectEvent doe = new DataObjectEvent(this,
+                    DataObjectEvent.EVENT_TYPE_STREAM_ENDED);
+            streamViewer.dataObjectAlert(doe);
+        }
     }
     
     public String[] getTags() {

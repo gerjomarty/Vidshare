@@ -81,8 +81,6 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
             }
         };
         
-        vs = (Vidshare) getApplication();
-        vs.setVideoStream(this);
         
         Window win = getWindow();
         win.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -126,6 +124,8 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     public void onStart() {
         super.onStart();
         Log.d(Vidshare.LOG_TAG, "*** VideoStream *** onStart() ***");
+        vs = (Vidshare) getApplication();
+        vs.setVideoStream(this);
         
         makeSureCameraIsOpen();
         //mCamera.setErrorCallback(this);

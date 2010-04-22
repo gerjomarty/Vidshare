@@ -1,6 +1,11 @@
 package com.gm375.vidshare;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.GregorianCalendar;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.haggle.Attribute;
@@ -16,6 +21,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.DialogInterface.OnClickListener;
+import android.database.DataSetObserver;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -26,7 +32,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TabHost;
@@ -52,9 +60,11 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
     
     private NodeAdapter nodeAdpt = null;
     private StreamAdapter streamAdpt = null;
+    private ArrayAdapter<String> settingsAdpt = null;
     private Vidshare vs = null;
     //private TextView neighListHeader = null;
     private boolean shouldRegisterWithHaggle = true;
+    
     
     /** Called when the activity is first created. */
     @Override
@@ -79,18 +89,21 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
         ListView neighList = (ListView) findViewById(R.id.neighbor_list);
         nodeAdpt = new NodeAdapter(this);
         neighList.setAdapter(nodeAdpt);
-        // We also want to show context menu for longpressed items in the neighbor list.
-        registerForContextMenu(neighList);
         
-        //mListView = (ListView) findViewById(R.id.neighbor_list);
-        //mArrayAdapter = new ArrayAdapter<String>(this, R.id.textview1);
-        //mListView.setAdapter(mArrayAdapter);
+        ArrayList<String> settingsArrayList = new ArrayList<String>(1);
+        settingsArrayList.add("Edit Interests");
+        settingsAdpt = new ArrayAdapter<String>(this, R.layout.list_text_item, settingsArrayList);
+
+        ListView settingsList = (ListView) findViewById(R.id.settings_list);
+        settingsList.setAdapter(settingsAdpt);
+        
+        settingsList.setOnItemClickListener(mOnSettingClicked);
         
         TabHost mTabHost = getTabHost();
         
         mTabHost.addTab(mTabHost.newTabSpec("watchTab").setIndicator(getResources().getText(R.string.tab1)).setContent(R.id.stream_list));
         mTabHost.addTab(mTabHost.newTabSpec("neighboursTab").setIndicator(getResources().getText(R.string.tab2)).setContent(R.id.neighbor_list));
-        mTabHost.addTab(mTabHost.newTabSpec("settingsTab").setIndicator(getResources().getText(R.string.tab3)).setContent(R.id.textview3));
+        mTabHost.addTab(mTabHost.newTabSpec("settingsTab").setIndicator(getResources().getText(R.string.tab3)).setContent(R.id.settings_list));
         
         mTabHost.setCurrentTab(0);
         setDefaultTab(0);
@@ -111,6 +124,22 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
             i.setClass(getApplicationContext(), StreamViewer.class);
             i.putExtra(STREAM_ID_KEY, mapKey);
             startActivityForResult(i, Vidshare.WATCH_STREAM_REQUEST);
+        }
+    };
+    
+    private AdapterView.OnItemClickListener mOnSettingClicked = 
+            new AdapterView.OnItemClickListener() {
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position,
+                long id) {
+            if (position == 0) {
+                // Interests
+                final Intent i = new Intent();
+                i.setClass(getApplicationContext(), InterestView.class);
+                startActivityForResult(i, Vidshare.ADD_INTEREST_REQUEST);
+            } else {
+                return;
+            }
         }
     };
     
@@ -159,6 +188,7 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
             }
         }
         shouldRegisterWithHaggle = true;
+        
         
     } // end onStart()
     
@@ -252,7 +282,6 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
         // TODO: Change strings to strings in XML.
         
         menu.add(0, MENU_RECORD_VIDEO, 0, "Stream Video");
-        menu.add(0, MENU_INTERESTS, 0, "Interests");
         menu.add(0, MENU_SHUTDOWN_HAGGLE, 0, "Shutdown Haggle");
 
         return true;
@@ -268,10 +297,6 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
             //i.setClass(getApplicationContext(), VideoRecord.class);
             i.setClass(getApplicationContext(), AddVideoAttributeView.class);
             this.startActivityForResult(i, Vidshare.ADD_STREAM_ATTRIBUTES_REQUEST);
-            return true;
-        case MENU_INTERESTS:
-            i.setClass(getApplicationContext(), InterestView.class);
-            this.startActivityForResult(i, Vidshare.ADD_INTEREST_REQUEST);
             return true;
         case MENU_SHUTDOWN_HAGGLE:
             vs.shutdownHaggle();
@@ -450,7 +475,7 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
                     .setText("No streams available.");
                 
                 ((TextView) rl.findViewById(R.id.stream_list_item_tags))
-                    .setText("");
+                    .setText("Touch 'Settings', then 'Edit Interests' to edit your interests.");
                 
             } else {
                 Stream stream = (Stream) mStreamMap.values().toArray()[position];
