@@ -4,6 +4,7 @@ import java.util.EventObject;
 
 public class DataObjectEvent extends EventObject {
     
+    private static final long serialVersionUID = 1L;
     public static final int EVENT_TYPE_NEW_DATA_OBJECT = 0;
     public static final int EVENT_TYPE_TIMEOUT_REACHED = -1;
     public static final int EVENT_TYPE_STREAM_ENDED = -2;

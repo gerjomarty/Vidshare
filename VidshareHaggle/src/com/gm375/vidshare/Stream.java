@@ -19,7 +19,7 @@ public class Stream {
     
     // Max number of dObjs that will be held.
     private final static int MAX_LENGTH_OF_TOFIRE_LIST = 3;
-    private final static long TIMEOUT_IN_MILLISECONDS = 15000L;
+    private final static long TIMEOUT_IN_MILLISECONDS = 12000L;
     
     private Vidshare vs = null;
     
@@ -49,14 +49,7 @@ public class Stream {
         chunks = new ConcurrentHashMap<Integer, String>();
         id = dObj.getAttribute("id", 0).getValue();
         Log.d(Vidshare.LOG_TAG, "*** Stream constructor *** dObj ID = "+ id +" ***");
-        
-        // ID example: 0123456789abcdef
-        // ID length:  0123456789012345 length 16
-        androidId = id.substring(0, 16);
-        Log.d(Vidshare.LOG_TAG, "*** Stream constructor *** Android ID = "+ androidId +" ***");
-        // Start time example: 1267652761287
-        // Start time length:  6789012345678 length 13
-        startTime = id.substring(16, 29);
+        startTime = dObj.getAttribute("startTime", 0).getValue();
         Log.d(Vidshare.LOG_TAG, "*** Stream constructor *** start Time = "+ startTime +" ***");
         
         startTimeLong = Long.parseLong(startTime);
@@ -105,7 +98,7 @@ public class Stream {
             chunks.put(seqNumber, filepath);
             sequenceChunks(seqNumber, filepath);
         } else {
-            if (!toFire.isEmpty()) {
+            if (!expected.isEmpty()) {
                 chunks.put(seqNumber, filepath);
                 sequenceChunks(seqNumber, filepath);
             } else {

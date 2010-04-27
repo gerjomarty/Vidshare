@@ -192,8 +192,6 @@ public class Vidshare extends Application implements org.haggle.EventHandler {
     @Override
     public void onNewDataObject(DataObject dObj) {
         
-        // TODO: At the moment, this only responds to a video file. Will probably need to change for streaming.
-        
         if (act == null && vidStream == null && streamViewer == null) {
             Log.d(Vidshare.LOG_TAG, "***Activity was null***");
             return;

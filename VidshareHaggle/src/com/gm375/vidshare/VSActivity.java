@@ -318,8 +318,6 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
             }
         } else if (requestCode == Vidshare.STREAM_VIDEO_REQUEST) {
             
-            // TODO: This block will deal with the case when the video stream is stopped.
-            
             Log.d(Vidshare.LOG_TAG, "***Got response from VideoStream activity.***");
             
             if (resultCode == Activity.RESULT_OK) {
@@ -618,7 +616,6 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
                 break;
             case org.haggle.EventHandler.EVENT_NEW_DATAOBJECT:
                 Log.d(Vidshare.LOG_TAG, "EVENT_NEW_DATAOBJECT");
-                // TODO: Do stuff with new data objects.
                 streamAdpt.updateStreams(dObj);
                 break;
             }

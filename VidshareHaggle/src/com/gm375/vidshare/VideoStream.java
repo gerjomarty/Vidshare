@@ -5,6 +5,9 @@ import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -44,6 +47,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     private String[] attributes;
     private long startTime;
     private String androidId;
+    private String hashedId;
     
     private volatile int currentListIndex;
     private List<MediaRecorder> mrList;
@@ -117,6 +121,17 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         
         androidId = android.provider.Settings.Secure.getString(getContentResolver(), 
                 android.provider.Settings.Secure.ANDROID_ID);
+        
+        MessageDigest sha = null;
+        try {
+            sha = MessageDigest.getInstance("SHA-1");
+        } catch (NoSuchAlgorithmException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        byte[] shaDigest = sha.digest((androidId.concat(String.valueOf(startTime))).getBytes());
+        BigInteger shaInt = new BigInteger(1, shaDigest);
+        hashedId = shaInt.toString(16);
         
         
     }
@@ -394,7 +409,8 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
                             }
                         }
                         dObj.addAttribute("seqNumber", String.valueOf(currSeqNumber), 1);
-                        dObj.addAttribute("id", androidId+startTime, 1);
+                        dObj.addAttribute("id", hashedId, 1);
+                        dObj.addAttribute("startTime", String.valueOf(startTime), 1);
                         dObj.addAttribute("isLast", "false", 1);
                         /*
                         while (!isFinishedTakingThumbnail) {
@@ -441,7 +457,8 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
                 }
                 int finalSeqNumber = seqNumberList.get(currentListIndex);
                 dObj.addAttribute("seqNumber", String.valueOf(finalSeqNumber), 1);
-                dObj.addAttribute("id", androidId+startTime, 1);
+                dObj.addAttribute("id", hashedId, 1);
+                dObj.addAttribute("startTime", String.valueOf(startTime), 1);
                 dObj.addAttribute("isLast", "true", 1);
                 dObj.addHash();
                 if (dObj == null)
