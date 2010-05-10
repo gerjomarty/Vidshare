@@ -23,6 +23,7 @@ import android.content.Intent;
 import android.content.DialogInterface.OnClickListener;
 import android.database.DataSetObserver;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -39,6 +40,7 @@ import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TabHost;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.gm375.vidshare.util.DateHelper;
 
@@ -123,7 +125,7 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
             Intent i = new Intent();
             i.setClass(getApplicationContext(), StreamViewer.class);
             i.putExtra(STREAM_ID_KEY, mapKey);
-            startActivityForResult(i, Vidshare.WATCH_STREAM_REQUEST);
+            startActivity(i);
         }
     };
     
@@ -347,14 +349,6 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
                 vs.getHaggleHandle().unregisterInterests(aa);
             }
             
-        } else if (requestCode == Vidshare.WATCH_STREAM_REQUEST) {
-            boolean isStreamOver = data.getBooleanExtra(VSActivity.IS_STREAM_OVER_KEY, false);
-            if (isStreamOver) {
-                String id = data.getStringExtra(VSActivity.STREAM_ID_KEY);
-                //vs.mStreamAliveMap.put(id, false);
-                //vs.mStreamMap.remove(id);
-                streamAdpt.refresh();
-            }
         } else {
             Log.d(Vidshare.LOG_TAG, "***Unknown activity result***");
         }
@@ -435,19 +429,25 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
             String mapKey = dObj.getAttribute("id", 0).getValue();
             
             if (mStreamMap.containsKey(mapKey)) {
+                Log.d("EVAL", "mStreamMap contains key: "+ mapKey);
                 Log.d(Vidshare.LOG_TAG, "*** updateStreams() *** stream map contains this stream already, adding dObj ***");
                 Stream str = mStreamMap.get(mapKey);
                 if (str.hasStreamEnded()) {
+                    Log.d("EVAL", "Stream has ended! Remove it!");
                     mStreamMap.remove(mapKey);
                     mStreamAliveMap.put(mapKey, false);
                 } else {
+                    Log.d("EVAL", "Stream has NOT ended! Add the dObj!");
                     str.addDataObject(dObj);
                 }
             } else {
+                Log.d("EVAL", "mStreamMap does NOT contain key: "+ mapKey);
                 if (mStreamAliveMap.get(mapKey) == null) {
+                    Log.d("EVAL", "Stream isn't in the alive map! Add it as true!");
                     mStreamAliveMap.put(mapKey, true);
                 }
                 if (mStreamAliveMap.get(mapKey) == true) {
+                    Log.d("EVAL", "Stream is in the alive map as TRUE! Create a stream!");
                     Log.d(Vidshare.LOG_TAG, "*** updateStreams() *** stream map does not have this one, creating new entry ***");
                     mStreamMap.put(mapKey, new Stream(dObj, vs));
                 }

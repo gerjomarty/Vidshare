@@ -191,6 +191,8 @@ public class Vidshare extends Application implements org.haggle.EventHandler {
     
     @Override
     public void onNewDataObject(DataObject dObj) {
+        Log.d("EVAL", "******** Time data object "+ dObj.getAttribute("seqNumber", 0).getValue()
+                +" arrived at Vidshare: "+ System.currentTimeMillis());
         
         if (act == null && vidStream == null && streamViewer == null) {
             Log.d(Vidshare.LOG_TAG, "***Activity was null***");

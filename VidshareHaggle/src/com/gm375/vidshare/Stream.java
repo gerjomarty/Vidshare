@@ -82,26 +82,41 @@ public class Stream {
         timeoutTimer = new Timer(true);
         timeoutTask = new TimeoutTask();
         
+        Log.d("EVAL", "******** Time data object "+ dObj.getAttribute("seqNumber", 0).getValue()
+                +" created STREAM CONSTRUCTOR: "+ System.currentTimeMillis());
+        
         addDataObject(dObj);
     }
     
     public void addDataObject(DataObject dObj) {
         
         Integer seqNumber = Integer.decode(dObj.getAttribute("seqNumber", 0).getValue());
+        
         String filepath = dObj.getFilePath();
         
         if (dObj.getAttribute("isLast", 0).getValue().contentEquals("true")) {
             streamEnding = true;
         }
         
+        Log.d(Vidshare.LOG_TAG, "*** seqNumber: "+ seqNumber +" ***");
+        Log.d(Vidshare.LOG_TAG, "*** filepath: "+ filepath +" ***");
+        
         if (!streamEnding) {
-            chunks.put(seqNumber, filepath);
+            Log.d("EVAL", "Stream not ending.");
+            if (filepath != null) {
+                chunks.put(seqNumber, filepath);
+            }
             sequenceChunks(seqNumber, filepath);
         } else {
+            Log.d("EVAL", "Stream IS ending.");
             if (!expected.isEmpty()) {
-                chunks.put(seqNumber, filepath);
+                Log.d("EVAL", "Expected list IS NOT empty.");
+                if (filepath != null) {
+                    chunks.put(seqNumber, filepath);
+                }
                 sequenceChunks(seqNumber, filepath);
             } else {
+                Log.d("EVAL", "Expected list IS empty. Fire stream ended.");
                 streamEnded = true;
                 fireStreamEnded();
             }
@@ -112,6 +127,7 @@ public class Stream {
             timeoutTask = new TimeoutTask();
             timeoutTimer.schedule(timeoutTask, TIMEOUT_IN_MILLISECONDS);
         }
+        Log.d("EVAL", "******** Time data object "+ seqNumber +" fully sequenced: "+ System.currentTimeMillis());
         
     }
     
@@ -202,6 +218,8 @@ public class Stream {
     }
     
     private void fireTimeout() {
+        vs.mStreamMap.remove(id);
+        vs.mStreamAliveMap.put(id, true);
         StreamViewer streamViewer = vs.getStreamViewer();
         if (streamViewer == null) {
             Log.e(Vidshare.LOG_TAG, "***!!! stream viewer was NULL when TIMEOUT was fired !!!***");

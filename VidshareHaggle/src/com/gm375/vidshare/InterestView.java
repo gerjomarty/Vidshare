@@ -77,7 +77,14 @@ public class InterestView extends Activity {
             @Override
             public void onClick(View v) {
                 Log.d(Vidshare.LOG_TAG, "*** Cancel button clicked ***");
-                finish();
+                Editable ed = entry.getText();
+                String interest = ed.toString();
+                if (interest == null || interest.length() == 0) {
+                    setResult(Activity.RESULT_CANCELED);
+                    finish();
+                } else {
+                    ed.clear();
+                }
             }
         });
         

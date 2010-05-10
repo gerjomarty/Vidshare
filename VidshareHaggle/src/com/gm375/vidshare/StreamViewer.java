@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.Window;
@@ -23,7 +24,7 @@ public class StreamViewer extends Activity implements DataObjectListener,
     
     private Vidshare vs = null;
     private VideoView mVideoView;
-    private ImageView mLoadingScreen;
+    //private ImageView mLoadingScreen;
     private Stream currentStream = null;
     
     private ConcurrentLinkedQueue<String> dObjFilepaths = null;
@@ -44,7 +45,7 @@ public class StreamViewer extends Activity implements DataObjectListener,
         dObjFilepaths = new ConcurrentLinkedQueue<String>();
         
         mVideoView = (VideoView) findViewById(R.id.stream_viewer_surface);
-        mLoadingScreen = (ImageView) findViewById(R.id.loading_screen);
+        //mLoadingScreen = (ImageView) findViewById(R.id.loading_screen);
         
         mVideoView.setOnCompletionListener(this);
         
@@ -85,6 +86,7 @@ public class StreamViewer extends Activity implements DataObjectListener,
         switch(dObjEvent.getEventType()) {
         
         case DataObjectEvent.EVENT_TYPE_TIMEOUT_REACHED:
+            Log.d(Vidshare.LOG_TAG, "*** STREAM VIEWER *** Event: Timeout ***");
             Toast.makeText(getApplicationContext(),
                     "There was a problem with the stream. It timed out.",
                     Toast.LENGTH_LONG).show();
@@ -92,14 +94,12 @@ public class StreamViewer extends Activity implements DataObjectListener,
             break;
             
         case DataObjectEvent.EVENT_TYPE_NEW_DATA_OBJECT:
+            Log.d(Vidshare.LOG_TAG, "*** STREAM VIEWER *** Event: New Data Object ***");
             newDataObject(dObjEvent.getseqNumber(), dObjEvent.getFilepath());
             break;
             
         case DataObjectEvent.EVENT_TYPE_STREAM_ENDED:
-            Intent i = new Intent();
-            i.putExtra(VSActivity.IS_STREAM_OVER_KEY, true);
-            i.putExtra(VSActivity.STREAM_ID_KEY, currentStream.getId());
-            setResult(Activity.RESULT_OK, i);
+            Log.d(Vidshare.LOG_TAG, "*** STREAM VIEWER *** Event: Stream Ended ***");
             finish();
             break;
             
@@ -108,14 +108,13 @@ public class StreamViewer extends Activity implements DataObjectListener,
     }
     
     private void newDataObject(Integer seqNumber, String filepath) {
+        dObjFilepaths.add(filepath);
         if (!mVideoView.isPlaying()) {
-            if (mLoadingScreen.isShown()) {
-                mLoadingScreen.setVisibility(View.GONE);
-            }
-            mVideoView.setVideoPath(filepath);
+            //if (mLoadingScreen.isShown()) {
+            //    mLoadingScreen.setVisibility(View.GONE);
+            //}
+            mVideoView.setVideoPath(dObjFilepaths.poll());
             mVideoView.start();
-        } else {
-            dObjFilepaths.add(filepath);            
         }
     }
 
@@ -146,12 +145,26 @@ public class StreamViewer extends Activity implements DataObjectListener,
 
     @Override
     public void onCompletion(MediaPlayer mp) {
+        Log.d(Vidshare.LOG_TAG, "*** STREAM VIEWER *** MediaPlayer onCompletion() ***");
         if (dObjFilepaths.isEmpty()) {
-            mLoadingScreen.setVisibility(View.VISIBLE);
+            //mLoadingScreen.setVisibility(View.VISIBLE);
+            //Toast.makeText(getApplicationContext(),
+            //        "Loading, please wait...",
+            //        Toast.LENGTH_LONG).show();
         } else {
             mVideoView.setVideoPath(dObjFilepaths.poll());
             mVideoView.start();
         }
+    }
+    
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        switch (keyCode) {
+        case KeyEvent.KEYCODE_BACK:
+            finish();
+            break;
+        }
+        return super.onKeyDown(keyCode, event);
     }
     
 }

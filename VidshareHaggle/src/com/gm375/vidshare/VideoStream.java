@@ -10,16 +10,19 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import org.haggle.DataObject;
 import org.haggle.DataObject.DataObjectException;
 
 import android.app.Activity;
+import android.content.Context;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
 import android.media.MediaRecorder;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.OrientationEventListener;
@@ -35,7 +38,6 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     
     private boolean mIsPreviewing = false;
     private VideoPreview mVideoPreview;
-    private MediaRecorder mMediaRecorder;
     private int mSavedWidth, mSavedHeight;
     OrientationEventListener mOrientationListener;
     private android.hardware.Camera mCamera;
@@ -68,6 +70,9 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     
     private volatile int mStatus = STATUS_IDLE;
     private volatile boolean isFinishedTakingThumbnail = false;
+    
+    /* EVAL */
+    private long evalTime = 0L;
     
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -295,8 +300,9 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         MediaRecorder mr = mrList.get(nextListIndex);
         mr.reset();
         int nextSeqNumber = mCounter.getNext();
-        String nextFilepath =
-            new File("/sdcard/Vidshare/vs_"+startTime+"_"+nextSeqNumber+".3gp").getPath();
+        File nextFile = new File("/sdcard/Vidshare/vs_"+startTime+"_"+nextSeqNumber+".3gp");
+        nextFile.deleteOnExit();
+        String nextFilepath = nextFile.getPath();
         seqNumberList.set(nextListIndex, nextSeqNumber);
         filepathList.set(nextListIndex, nextFilepath);
         mr.setVideoSource(MediaRecorder.VideoSource.CAMERA);
@@ -313,10 +319,12 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         MediaRecorder mr = mrList.get(currentListIndex);
         try {
             mr.prepare();
+            Log.d("EVAL", "***** Gap time: "+ String.valueOf(SystemClock.uptimeMillis() - evalTime));
             mr.start();
             Log.d(Vidshare.LOG_TAG, "*** VideoStream *** Sleeping for "+ MILLISECONDS_PER_CHUNK +" ms ***");
             Thread.sleep(MILLISECONDS_PER_CHUNK);
             mr.stop();
+            evalTime = SystemClock.uptimeMillis();
         } catch (IllegalStateException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -386,6 +394,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
             
             prepareNextRecordingThread.start();
             recordPart();
+            
             try {
                 prepareNextRecordingThread.join();
                 currentListIndex ^= 1;
@@ -395,6 +404,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
                 e.printStackTrace();
                 return;
             }
+            
             
             publishDObjThread = new Thread(new Runnable() {
                 @Override
@@ -424,13 +434,31 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
                             Log.d(Vidshare.LOG_TAG, "*** DOBJ WAS NULL!!! ***");
                         synchronized(vs) {
                             Log.d(Vidshare.LOG_TAG, "*** Publishing data object ***");
+                            Log.d("EVAL", "******** Time data object "+ currSeqNumber +" published: "+ System.currentTimeMillis());
                             int ret = vs.getHaggleHandle().publishDataObject(dObj);
                             if (ret == -1) {
                                 Log.e(Vidshare.LOG_TAG, "***!!! Data Object returned error code. !!!***");
                             }
                             Log.d(Vidshare.LOG_TAG, "*** Publish return code: "+ ret +" ***");
-                            sentDObjs.add(dObj);
                         }
+                        synchronized(sentDObjs) {
+                            sentDObjs.add(dObj);
+                            if (sentDObjs.size() >= 50) {
+                                int i = 0;
+                                for (Iterator<DataObject> it = sentDObjs.iterator(); it.hasNext(); ) {
+                                    DataObject delDObj = it.next();
+                                    synchronized(vs) {
+                                        vs.getHaggleHandle().deleteDataObject(delDObj);
+                                    }
+                                    it.remove();
+                                    delDObj.dispose();
+                                    if (++i >= 25) {
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        
                     } catch (DataObjectException e) {
                         Log.d(Vidshare.LOG_TAG, "*** VideoStream *** DataObjectException for sequence "+ currSeqNumber +" ***");
                         // TODO Auto-generated catch block
@@ -440,6 +468,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
             });
             
             publishDObjThread.start();
+            
         }
         
         try {
@@ -521,6 +550,11 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
                     }
                     Log.d(Vidshare.LOG_TAG, "*** Last object delete return code: "+ ret +" ***");
                 }
+            }
+            
+            File[] savedFileList = new File("/sdcard/Vidshare").listFiles();
+            for (File file : savedFileList) {
+                file.delete();
             }
             
             setResult(Activity.RESULT_OK);
