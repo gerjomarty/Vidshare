@@ -19,7 +19,7 @@ public class Stream {
     
     // Max number of dObjs that will be held.
     private final static int MAX_LENGTH_OF_TOFIRE_LIST = 3;
-    private final static long TIMEOUT_IN_MILLISECONDS = 12000L;
+    private final static long TIMEOUT_IN_MILLISECONDS = 15000L;
     
     private Vidshare vs = null;
     
@@ -100,6 +100,8 @@ public class Stream {
         
         Log.d(Vidshare.LOG_TAG, "*** seqNumber: "+ seqNumber +" ***");
         Log.d(Vidshare.LOG_TAG, "*** filepath: "+ filepath +" ***");
+        
+        dObj.dispose();
         
         if (!streamEnding) {
             Log.d("EVAL", "Stream not ending.");
