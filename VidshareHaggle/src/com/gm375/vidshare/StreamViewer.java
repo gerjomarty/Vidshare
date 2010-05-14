@@ -3,16 +3,13 @@ package com.gm375.vidshare;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.SurfaceHolder;
-import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.ImageView;
 import android.widget.Toast;
 import android.widget.VideoView;
 
@@ -20,7 +17,7 @@ import com.gm375.vidshare.listenerstuff.DataObjectEvent;
 import com.gm375.vidshare.listenerstuff.DataObjectListener;
 
 public class StreamViewer extends Activity implements DataObjectListener,
-            SurfaceHolder.Callback, MediaPlayer.OnCompletionListener {
+            MediaPlayer.OnCompletionListener {
     
     private Vidshare vs = null;
     private VideoView mVideoView;
@@ -50,7 +47,6 @@ public class StreamViewer extends Activity implements DataObjectListener,
         mVideoView.setOnCompletionListener(this);
         
         SurfaceHolder holder = mVideoView.getHolder();
-        holder.addCallback(this);
         holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
     }
     
@@ -77,7 +73,7 @@ public class StreamViewer extends Activity implements DataObjectListener,
 
     @Override
     public void dataObjectAlert(DataObjectEvent dObjEvent) {
-        // TODO: This is executed whenever a new Data Object (or timeout message) arrives.
+        // This is executed whenever a new Data Object (or timeout message) arrives.
         // They *should* arrive in order, so no sequencing should have to happen here.
         // There may be indeterminable delays between each data object though.
         
@@ -116,31 +112,6 @@ public class StreamViewer extends Activity implements DataObjectListener,
             mVideoView.setVideoPath(dObjFilepaths.poll());
             mVideoView.start();
         }
-    }
-
-    @Override
-    public void surfaceChanged(SurfaceHolder holder, int format, int width,
-            int height) {
-        Log.d(Vidshare.LOG_TAG, "*** StreamViewer *** surface changed ***");
-
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void surfaceCreated(SurfaceHolder holder) {
-        Log.d(Vidshare.LOG_TAG, "*** StreamViewer *** surface created ***");
-
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
-        Log.d(Vidshare.LOG_TAG, "*** StreamViewer *** surface destroyed ***");
-
-        // TODO Auto-generated method stub
-        
     }
 
     @Override

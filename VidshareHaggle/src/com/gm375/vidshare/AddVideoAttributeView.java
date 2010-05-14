@@ -53,6 +53,8 @@ public class AddVideoAttributeView extends Activity {
         attributeAdpt = new ArrayAdapter<String>(this, R.layout.list_text_item);
         attributeListView.setAdapter(attributeAdpt);
         
+        registerForContextMenu(attributeListView);
+        
     }
     
     @Override
@@ -103,9 +105,11 @@ public class AddVideoAttributeView extends Activity {
     
     @Override
     public boolean onContextItemSelected(MenuItem item) {
-        AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
-
-        removeAttribute(info.position);
+        if (item.getTitle() == "Delete") {
+            AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+            removeAttribute(info.position);
+        }
+        
         return super.onContextItemSelected(item);     
     }
     
@@ -129,8 +133,8 @@ public class AddVideoAttributeView extends Activity {
             }
 
             Intent i = new Intent();
-            i.putExtra("attributes", attributeList.toArray(new String[attributeList.size()]));
-            
+            i.putExtra("attributes",
+                    attributeList.toArray(new String[attributeList.size()]));
             setResult(RESULT_OK, i);
             break;
         case KeyEvent.KEYCODE_ENTER:

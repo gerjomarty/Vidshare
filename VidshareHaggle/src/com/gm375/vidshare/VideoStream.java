@@ -1,9 +1,6 @@
 package com.gm375.vidshare;
 
 import java.io.File;
-import java.io.FileDescriptor;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -17,9 +14,6 @@ import org.haggle.DataObject;
 import org.haggle.DataObject.DataObjectException;
 
 import android.app.Activity;
-import android.content.Context;
-import android.hardware.Camera;
-import android.hardware.Camera.PictureCallback;
 import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -34,7 +28,8 @@ import android.widget.ImageView;
 
 import com.gm375.vidshare.util.Counter;
 
-public class VideoStream extends Activity implements View.OnClickListener, SurfaceHolder.Callback, Camera.ErrorCallback {
+public class VideoStream extends Activity implements View.OnClickListener,
+        SurfaceHolder.Callback {
     
     private boolean mIsPreviewing = false;
     private VideoPreview mVideoPreview;
@@ -66,10 +61,8 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
     private static final int STATUS_IDLE = 0;
     private static final int STATUS_STREAMING_VIDEO = 1;
     private static final int STATUS_STOPPING_STREAM = 2;
-    private static final int STATUS_STREAM_STOPPED = 3;
     
     private volatile int mStatus = STATUS_IDLE;
-    private volatile boolean isFinishedTakingThumbnail = false;
     
     /* EVAL */
     private long evalTime = 0L;
@@ -80,7 +73,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         Log.d(Vidshare.LOG_TAG, "*** VideoStream *** onCreate() ***");
         
         mCamera = android.hardware.Camera.open();
-        // TODO: Find some way to quicken this up by shifting to another thread, while preserving locks.
+        // FIXME: Find some way to quicken this up by shifting to another thread, while preserving locks.
         
         this.mOrientationListener = new OrientationEventListener(this) {
             public void onOrientationChanged(int orientation) {
@@ -148,14 +141,12 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         vs.setVideoStream(this);
         
         makeSureCameraIsOpen();
-        //mCamera.setErrorCallback(this);
     }
     
     public void onStop() {
         super.onStop();
         Log.d(Vidshare.LOG_TAG, "*** VideoStream *** onStop() ***");
         
-        //closeCamera();
         vs.setVideoStream(null);
     }
 
@@ -205,18 +196,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         stopPreview();
         mSurfaceHolder = null;
     }
-    /*
-    private final class JpegPictureCallback implements PictureCallback {
 
-        @Override
-        public void onPictureTaken(final byte[] data, Camera camera) {
-                thumbnailData = new byte[data.length];
-                thumbnailData = data.clone();
-                isFinishedTakingThumbnail = true;
-        }
-        
-    }
-    */
     public void startPreview(int w, int h, boolean start) {
         Log.d(Vidshare.LOG_TAG, "*** VideoStream *** startPreview() ***");
         mVideoPreview.setVisibility(View.VISIBLE);
@@ -354,22 +334,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
         Thread prepareNextRecordingThread = null;
         Thread publishDObjThread = null;
         
-        //stopPreview();
         closeCamera();
-        
-        // Take photo for thumbnail image.
-        /*
-        Camera.Parameters oldParams = mCamera.getParameters();
-        Camera.Parameters thumbParams = mCamera.getParameters();
-        
-        final int latchedOrientation = roundOrientation(mLastOrientation + 90);
-        thumbParams.set("picture-size", "80x60");
-        thumbParams.set("jpeg-quality", 75);
-        thumbParams.set("rotation", latchedOrientation);
-        mCamera.takePicture(null, null, mJpegCallback);
-        
-        mCamera.setParameters(oldParams);
-        */
         
         // Do the initial setup for the first MediaRecorder here, then can do in
         // in thread for all subsequent times.
@@ -422,13 +387,7 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
                         dObj.addAttribute("id", hashedId, 1);
                         dObj.addAttribute("startTime", String.valueOf(startTime), 1);
                         dObj.addAttribute("isLast", "false", 1);
-                        /*
-                        while (!isFinishedTakingThumbnail) {
-                            // Busy wait.
-                        }
-                        dObj.setThumbnail(thumbnailData);
-                        */
-                        // TODO: Add more attributes here.
+                        // Could add more attributes here.
                         dObj.addHash();
                         if (dObj == null)
                             Log.d(Vidshare.LOG_TAG, "*** DOBJ WAS NULL!!! ***");
@@ -579,11 +538,6 @@ public class VideoStream extends Activity implements View.OnClickListener, Surfa
             break;
         }
         return super.onKeyDown(keyCode, event);
-    }
-
-    @Override
-    public void onError(int error, Camera camera) {
-        Log.e(Vidshare.LOG_TAG, "***!!!  VideoStream  ***  Error code: "+ error +"  !!!***");
     }
 
 }

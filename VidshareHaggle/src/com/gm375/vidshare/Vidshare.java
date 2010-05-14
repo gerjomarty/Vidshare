@@ -41,7 +41,6 @@ public class Vidshare extends Application implements org.haggle.EventHandler {
     
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
-        // TODO Auto-generated method stub
         super.onConfigurationChanged(newConfig);
     }
     
@@ -54,23 +53,18 @@ public class Vidshare extends Application implements org.haggle.EventHandler {
         mStreamMap = new ConcurrentHashMap<String, Stream>();
         mStreamAliveMap = new ConcurrentHashMap<String, Boolean>();
         
-        // TODO: Get vibrator here, when implementing.
-        
     }
     
     @Override
     public void onLowMemory() {
-        // TODO Auto-generated method stub
         super.onLowMemory();
         Log.d(Vidshare.LOG_TAG, "***onLowMemory()***");  
     }
 
     @Override
     public void onTerminate() {
-        // TODO Auto-generated method stub
         super.onTerminate();
-        Log.d(Vidshare.LOG_TAG, "***onTerminate()***");  
-        //finiHaggle();
+        Log.d(Vidshare.LOG_TAG, "***onTerminate()***"); 
     }
     
     public void setVSActivity(VSActivity act) {

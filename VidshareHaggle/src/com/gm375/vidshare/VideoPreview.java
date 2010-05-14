@@ -14,17 +14,14 @@ public class VideoPreview extends SurfaceView {
     
     public VideoPreview(Context context) {
         super(context);
-        // TODO Auto-generated constructor stub
     }
     
     public VideoPreview(Context context, AttributeSet attrs) {
         super(context, attrs);
-        // TODO Auto-generated constructor stub
     }
     
     public VideoPreview(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        // TODO Auto-generated constructor stub
     }
     
     public void setAspectRatio(int width, int height) {

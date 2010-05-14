@@ -157,18 +157,13 @@ public class InterestView extends Activity {
         
         for (int i = 0; i < split.length; i++) {
             
-            String[] split2 = split[i].split(":");
-            
-            // FIXME: Original app had some stuff to do with weights in here. (Weights defined as "interestname:weight")
-            if (split2.length == 2) {
-                interest = split2[0];
-            }
-            
             interest = interest.trim();
             Log.d(Vidshare.LOG_TAG, "***Entry: "+ interest +" ***");
             
             if (hasInterest(interest)) {
-                Toast toast = Toast.makeText(getApplicationContext(), "You already have the interest '" + interest + "'", Toast.LENGTH_SHORT);
+                Toast toast = Toast.makeText(getApplicationContext(),
+                        "You already have the interest '" + interest + "'",
+                        Toast.LENGTH_SHORT);
                 toast.setGravity(Gravity.TOP|Gravity.CENTER, 0, 50);
                 toast.show();
                 continue;

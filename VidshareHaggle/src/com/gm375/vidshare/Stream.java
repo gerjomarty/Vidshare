@@ -10,7 +10,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.haggle.Attribute;
 import org.haggle.DataObject;
 
-import android.graphics.Bitmap;
 import android.util.Log;
 
 import com.gm375.vidshare.listenerstuff.DataObjectEvent;
@@ -29,7 +28,6 @@ public class Stream {
     private String androidId;
     private String startTime;
     private long startTimeLong;
-    private Bitmap thumbnail;
     
     private Timer timeoutTimer;
     private TimeoutTask timeoutTask;
@@ -69,13 +67,6 @@ public class Stream {
                 tags[i++] = attr.getValue();
             }
         }
-        
-        /*
-        int size = (int) dObj.getThumbnailSize();
-        byte[] data = new byte[size];
-        dObj.getThumbnail(data);
-        thumbnail = BitmapFactory.decodeByteArray(data, 0, size);
-        */
         
         this.vs = vs;
         
@@ -269,10 +260,6 @@ public class Stream {
     
     public long getStartTimeLong() {
         return startTimeLong;
-    }
-    
-    public Bitmap getThumbnail() {
-        return thumbnail;
     }
     
     public boolean isBeingViewed() {

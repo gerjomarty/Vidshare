@@ -1,11 +1,7 @@
 package com.gm375.vidshare;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.GregorianCalendar;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.haggle.Attribute;
@@ -21,9 +17,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.DialogInterface.OnClickListener;
-import android.database.DataSetObserver;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -35,12 +29,10 @@ import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TabHost;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.gm375.vidshare.util.DateHelper;
 
@@ -57,14 +49,10 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
     public static final String STREAM_ID_KEY = "com.gm375.vidshare.streamId";
     public static final String IS_STREAM_OVER_KEY = "com.gm375.vidshare.isStreamOver";
     
-    //ListView mListView = null;
-    //ArrayAdapter<String> mArrayAdapter = null;
-    
     private NodeAdapter nodeAdpt = null;
     private StreamAdapter streamAdpt = null;
     private ArrayAdapter<String> settingsAdpt = null;
     private Vidshare vs = null;
-    //private TextView neighListHeader = null;
     private boolean shouldRegisterWithHaggle = true;
     
     
@@ -85,8 +73,6 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
         streamList.setAdapter(streamAdpt);
         
         streamList.setOnItemClickListener(mOnStreamClicked);
-        
-        //neighListHeader = (TextView) findViewById(R.id.list_header);
         
         ListView neighList = (ListView) findViewById(R.id.neighbor_list);
         nodeAdpt = new NodeAdapter(this);
@@ -250,7 +236,6 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
     @Override
     protected Dialog onCreateDialog(int id) {
         switch (id) {
-        // TODO: Change titles and messages to point to XML strings.
         case Vidshare.STATUS_REGISTRATION_FAILED:
             return new AlertDialog.Builder(this)
             .setTitle("Haggle registration failed")
@@ -276,12 +261,6 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
-
-        //menu.add(0, MENU_TAKE_PICTURE, 0, R.string.menu_take_picture).setIcon(R.drawable.ic_camera_indicator_photo);
-        //menu.add(0, MENU_INTERESTS, 0, R.string.menu_interests);
-        //menu.add(0, MENU_SHUTDOWN_HAGGLE, 0, R.string.menu_shutdown_haggle);
-
-        // TODO: Change strings to strings in XML.
         
         menu.add(0, MENU_RECORD_VIDEO, 0, "Stream Video");
         menu.add(0, MENU_SHUTDOWN_HAGGLE, 0, "Shutdown Haggle");
@@ -296,7 +275,6 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
         
         switch (item.getItemId()) {
         case MENU_RECORD_VIDEO:
-            //i.setClass(getApplicationContext(), VideoRecord.class);
             i.setClass(getApplicationContext(), AddVideoAttributeView.class);
             this.startActivityForResult(i, Vidshare.ADD_STREAM_ATTRIBUTES_REQUEST);
             return true;
@@ -323,7 +301,8 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
             Log.d(Vidshare.LOG_TAG, "***Got response from VideoStream activity.***");
             
             if (resultCode == Activity.RESULT_OK) {
-                // Stream completely finished.
+                Log.d(Vidshare.LOG_TAG, "***Stream completely finished.***");
+
                 
             }
         } else if (requestCode == Vidshare.ADD_INTEREST_REQUEST) {
@@ -357,33 +336,9 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
     
     @Override
     public void onTabChanged(String tabId) {
-        // TODO Auto-generated method stub
+        // Nothing
         
     }
-    
-    // TODO: Use this when implementing video gallery thing to play back videos (Will we need this if we're streaming? Probably.)
-    /*
-    @Override
-    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
-
-        Log.d(Vidshare.LOG_TAG, "***onCreateContextMenu()***");
-        
-        if (v == gallery) {
-            menu.setHeaderTitle("Picture");
-            menu.add("Delete");
-            menu.add("View Attributes");
-            menu.add("Cancel");
-        } else { 
-            // TODO We should check for the correct view like for the gallery
-            /* ListView lv = (ListView) v;
-            NodeAdapter na = (NodeAdapter) lv.getAdapter();
-            */
-            /*
-            menu.setHeaderTitle("Node Information");
-            menu.add("Cancel");
-        }
-    }
-    */
     
     
     public class StreamAdapter extends BaseAdapter {
@@ -466,9 +421,6 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
             
             if (mStreamMap == null || mStreamMap.size() == 0) {
                 
-                //((FrameLayout) rl.findViewById(R.id.stream_list_item_thumbnail))
-                //    .setForeground(new BitmapDrawable());
-                
                 ((TextView) rl.findViewById(R.id.stream_list_item_date))
                     .setText("No streams available.");
                 
@@ -477,9 +429,6 @@ public class VSActivity extends TabActivity implements OnClickListener, TabHost.
                 
             } else {
                 Stream stream = (Stream) mStreamMap.values().toArray()[position];
-                
-                //((FrameLayout) rl.findViewById(R.id.stream_list_item_thumbnail))
-                //    .setForeground(new BitmapDrawable(stream.getThumbnail()));
                 
                 GregorianCalendar cal = new GregorianCalendar();
                 cal.setTimeInMillis(stream.getStartTimeLong());
