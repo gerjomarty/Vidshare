@@ -1,0 +1,37 @@
+---------------
+Vidshare README
+---------------
+
+Hello. This was my Part II Project for Computer Science at the University of Cambridge. It is a video broadcasting application that streams video to other users of the application over Bluetooth and Wi-Fi, who in turn broadcast to nodes within range of them.
+
+It utilises version 0.2 of the Haggle Project (http://www.haggleproject.org/), a data transmission framework designed for mobile phones that propagates data objects over ad-hoc wireless.
+
+
+LIMITATIONS
+-----------
+
+Version 0.2 of Haggle only worked properly with Android 1.5 (Cupcake), so Vidshare was programmed specifically for Cupcake and will not work with other versions of Android.
+
+Furthermore, the devices supported seemed to be very limited. I tested on a HTC Magic (/ Android Developer Phone 2 / Google Ion).
+
+Haggle needs to be installed on all devices to be used, hence the phone will need to be rooted for Haggle to be installed.
+
+As this is an undergrad Compsci project, it works just as smoothly as you'd expect -- not very. When streaming, video blacks out every three seconds for approximately one second, due to limitations in Cupcake. This makes it effectively useless in practice.
+
+
+INSTALLATION
+------------
+
+Why the hell you'd want to after reading the previous section, I have no idea. But here's a quick guide anyway.
+
+1. Install Haggle 0.2 from the Google Code page (http://code.google.com/p/haggle/). The pre-compiled binary (haggle-0.2-android-bin.tar.gz) should suffice. Installation info is on the wiki on the same site.
+
+2. Ensure you follow the guide to enable ad-hoc wireless on Android 1.5, as there is no interface to change this in the settings.
+
+3. Install the APK on your phone and hope for the best.
+
+
+LICENSING
+---------
+
+Vidshare is licensed under the Creative Commons Attribution-NonCommercial 3.0 Unported License. Terms of the license can be found at http://creativecommons.org/licenses/by-nc/3.0/ .
